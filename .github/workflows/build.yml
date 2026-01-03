@@ -27,14 +27,9 @@ jobs:
         run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Install TeX Live
-        uses: xu-cheng/latex-action@v3
-        with:
-          working_directory: .
-          root_file: "*.tex"
-          latexmk_use_xelatex: true
-          continue_on_error: true
-          pre_compile: |
-            echo "Setting up TeX Live environment"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
       - name: Compile LaTeX documents
         run: |
@@ -42,30 +37,37 @@ jobs:
           SHORT_SHA="${{ steps.vars.outputs.short_sha }}"
           
           # Find all .tex files in docs subdirectories
-          find docs -name "*.tex" -type f | while read texfile; do
-            dir=$(dirname "$texfile")
-            filename=$(basename "$texfile" .tex)
-            
-            echo "Compiling $texfile..."
-            
-            # Run xelatex twice for references
-            cd "$dir"
-            xelatex -interaction=nonstopmode -halt-on-error "$filename.tex" || true
-            xelatex -interaction=nonstopmode -halt-on-error "$filename.tex" || true
-            
-            # Move PDF to build directory with version suffix
-            if [ -f "$filename.pdf" ]; then
-              subdir=$(basename "$dir")
-              mkdir -p "$GITHUB_WORKSPACE/build/$subdir"
-              mv "$filename.pdf" "$GITHUB_WORKSPACE/build/$subdir/${filename}_${SHORT_SHA}.pdf"
-              echo "Created: build/$subdir/${filename}_${SHORT_SHA}.pdf"
-            fi
-            
-            cd "$GITHUB_WORKSPACE"
-          done
+          tex_files=$(find docs -name "*.tex" -type f 2>/dev/null || true)
+          
+          if [ -z "$tex_files" ]; then
+            echo "No .tex files found in docs/"
+          else
+            echo "$tex_files" | while read texfile; do
+              dir=$(dirname "$texfile")
+              filename=$(basename "$texfile" .tex)
+              
+              echo "Compiling $texfile..."
+              
+              # Run xelatex twice for references
+              cd "$dir"
+              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex" || true
+              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex" || true
+              
+              # Move PDF to build directory with version suffix
+              if [ -f "$filename.pdf" ]; then
+                subdir=$(basename "$dir")
+                mkdir -p "$GITHUB_WORKSPACE/build/$subdir"
+                mv "$filename.pdf" "$GITHUB_WORKSPACE/build/$subdir/${filename}_${SHORT_SHA}.pdf"
+                echo "Created: build/$subdir/${filename}_${SHORT_SHA}.pdf"
+              fi
+              
+              cd "$GITHUB_WORKSPACE"
+            done
+          fi
 
       - name: Generate manifest.json
         run: |
+          mkdir -p build
           SHORT_SHA="${{ steps.vars.outputs.short_sha }}"
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           
@@ -75,44 +77,46 @@ jobs:
           echo "  \"documents\": [" >> build/manifest.json
           
           first_doc=true
-          for subdir in build/*/; do
-            if [ -d "$subdir" ]; then
-              dirname=$(basename "$subdir")
-              
-              # Skip if no PDFs in directory
-              if ! ls "$subdir"*.pdf 1> /dev/null 2>&1; then
-                continue
-              fi
-              
-              # Extract title from directory name (remove date prefix)
-              title=$(echo "$dirname" | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}_//' | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g')
-              
-              if [ "$first_doc" = false ]; then
-                echo "    ," >> build/manifest.json
-              fi
-              first_doc=false
-              
-              echo "    {" >> build/manifest.json
-              echo "      \"dir\": \"$dirname\"," >> build/manifest.json
-              echo "      \"title\": \"$title\"," >> build/manifest.json
-              echo "      \"files\": [" >> build/manifest.json
-              
-              first_file=true
-              for pdf in "$subdir"*.pdf; do
-                if [ -f "$pdf" ]; then
-                  pdfname=$(basename "$pdf")
-                  if [ "$first_file" = false ]; then
-                    echo "        ," >> build/manifest.json
-                  fi
-                  first_file=false
-                  echo "        {\"name\": \"$pdfname\", \"type\": \"pdf\"}" >> build/manifest.json
+          if [ -d "build" ]; then
+            for subdir in build/*/; do
+              if [ -d "$subdir" ]; then
+                dirname=$(basename "$subdir")
+                
+                # Skip if no PDFs in directory
+                if ! ls "$subdir"*.pdf 1> /dev/null 2>&1; then
+                  continue
                 fi
-              done
-              
-              echo "      ]" >> build/manifest.json
-              echo "    }" >> build/manifest.json
-            fi
-          done
+                
+                # Extract title from directory name (remove date prefix)
+                title=$(echo "$dirname" | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}_//' | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g')
+                
+                if [ "$first_doc" = false ]; then
+                  echo "    ," >> build/manifest.json
+                fi
+                first_doc=false
+                
+                echo "    {" >> build/manifest.json
+                echo "      \"dir\": \"$dirname\"," >> build/manifest.json
+                echo "      \"title\": \"$title\"," >> build/manifest.json
+                echo "      \"files\": [" >> build/manifest.json
+                
+                first_file=true
+                for pdf in "$subdir"*.pdf; do
+                  if [ -f "$pdf" ]; then
+                    pdfname=$(basename "$pdf")
+                    if [ "$first_file" = false ]; then
+                      echo "        ," >> build/manifest.json
+                    fi
+                    first_file=false
+                    echo "        {\"name\": \"$pdfname\", \"type\": \"pdf\"}" >> build/manifest.json
+                  fi
+                done
+                
+                echo "      ]" >> build/manifest.json
+                echo "    }" >> build/manifest.json
+              fi
+            done
+          fi
           
           echo "  ]" >> build/manifest.json
           echo "}" >> build/manifest.json
@@ -137,16 +141,14 @@ jobs:
 
       - name: Prepare deployment
         run: |
-          # Copy PDFs to web dist
+          # Copy PDFs to web dist (if any exist)
           cp -r build/* web/dist/ 2>/dev/null || true
           # Copy manifest to web dist
-          cp build/manifest.json web/dist/ 2>/dev/null || true
+          cp build/manifest.json web/dist/
 
       - name: Setup Pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/configure-pages@v4
-        with:
-          enablement: true
 
       - name: Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
