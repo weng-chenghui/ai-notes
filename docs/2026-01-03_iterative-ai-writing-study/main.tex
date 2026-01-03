@@ -45,7 +45,7 @@ The note assumes only the familiar backbone of scholarly work: search for credib
 \section{Background and motivation}
 \label{sec:background}
 
-Contemporary large language models are trained on broad corpora and frequently exhibit what appears to be ``common-sense'' competence across many domains. This observation is widely discussed under the umbrella of ``foundation models'' \cite[Section~1]{Bommasani2021}. At the same time, there is substantial evidence that language models can produce fluent but false or misleading outputs, motivating explicit evaluation of truthfulness and verification practices \cite[Section~1]{Lin2021TruthfulQA}.
+Contemporary large language models are trained on broad corpora and frequently exhibit what appears to be ``common-sense'' competence across many domains. This observation is widely discussed under the umbrella of ``foundation models'' \cite[Section~1]{Bommasani2021}, which emphasizes generality across tasks and domains. At the same time, there is substantial evidence that language models can produce fluent but false or misleading outputs \cite[Section~1]{Lin2021TruthfulQA}, motivating explicit evaluation of truthfulness and verification practices.
 
 This note adopts a cautious stance: model outputs are treated as \emph{draft hypotheses} rather than authoritative statements. The workflow’s purpose is to exploit the speed of draft generation while maintaining epistemic discipline through explicit verification steps.
 
@@ -83,7 +83,7 @@ The following points motivate the loop above:
 
   \item Each generation--review cycle yields a new version of the document that can be compared against previous versions and against a fixed set of verification expectations; see \cref{sec:checklist}.
 
-  \item Over iterations, the document may converge toward a state in which most claims are grounded in cited sources or proved arguments. Unresolved items are collected as open questions, potentially indicating directions for further study; see \cref{sec:open-questions}.
+  \item Over iterations, the document may move toward a state in which a larger fraction of claims are grounded in cited sources or proved arguments. This outcome is aspirational and depends on reviewer expertise, the availability and quality of sources, and disciplined revision; failure modes (e.g., plausible but incorrect narratives) remain possible. Unresolved items are collected as open questions, potentially indicating directions for further study; see \cref{sec:open-questions}.
 
   \item The underlying scholarly backbone---search, study, and verification---is unchanged. The proposed workflow merely replaces some drafting labor with model-assisted drafting while retaining human responsibility for verification.
 
@@ -116,7 +116,7 @@ The following points motivate the loop above:
   \draw[arrow] (revise) -- (version);
   \draw[arrow] (version.east) .. controls +(20mm,0) and +(20mm,0) .. node[right,align=left]{iterate\\(expand/adjust scope)} (draft.east);
 \end{tikzpicture}
-\caption{A draft generation--review--verification loop. The model contributes text and candidate structure; the human retains responsibility for verification and for deciding which claims to keep.}
+\caption{A draft generation--review--verification loop. The model contributes text and candidate structure; the human retains responsibility for verification and for deciding which claims to keep. Each iteration should produce an explicit record of changes (e.g., resolved issues and remaining open questions) to support targeted subsequent review.}
 \label{fig:loop}
 \end{figure}
 
