@@ -27,6 +27,9 @@
 # Build outputs (PDFs are in gh-pages branch)
 build/
 
+# Local LaTeX outputs inside docs (keep PDFs out of git; CI publishes versioned PDFs)
+docs/**/main.pdf
+
 # Node.js (for web app)
 node_modules/
 dist/
