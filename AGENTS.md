@@ -258,7 +258,57 @@ The reviewer **MUST** verify the following:
 
 ---
 
-## 6. Example Document Structure
+## 6. Git Operations
+
+### 6.1 GPG Signing Requirement
+
+All commits pushed directly to `main` **MUST** be GPG-signed. This repository enforces commit signing for security and verification purposes.
+
+### 6.2 Sandbox Restrictions
+
+**Do NOT use sandboxed environments for git operations.** The sandbox restricts access to GPG keys, causing signing failures.
+
+When executing git commands:
+- Always use `required_permissions: ["all"]` to disable the sandbox
+- Never use `--no-gpg-sign` flag—commits must be signed
+
+### 6.3 Handling Signing Failures
+
+If GPG signing fails (e.g., `error: gpg failed to sign the data`), the agent **MUST**:
+
+1. **Stop immediately**—do not attempt workarounds
+2. **Show the user the exact command** they need to run manually
+3. **Explain the issue** briefly
+
+**Example response when signing fails:**
+
+```
+GPG signing failed. Please run the following command manually:
+
+cd /path/to/ai-notes && git add -A && git commit -m "Your commit message" && git push
+
+If signing continues to fail, check your GPG configuration:
+- Ensure GPG_TTY is set: export GPG_TTY=$(tty)
+- Verify your signing key: git config --get user.signingkey
+- Test GPG: echo "test" | gpg --clearsign
+```
+
+### 6.4 Correct Git Command Pattern
+
+When the agent needs to commit and push:
+
+```bash
+# Always use 'all' permissions to access GPG keys
+cd /path/to/repo && git add -A && git commit -m "Commit message" && git push
+```
+
+**Never use:**
+- `--no-gpg-sign` (violates signing requirement)
+- Sandboxed git commands (will fail GPG signing)
+
+---
+
+## 7. Example Document Structure
 
 A well-formed document directory should look like:
 
