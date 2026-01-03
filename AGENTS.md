@@ -399,7 +399,7 @@ Concluding remarks.
 
 ---
 
-## 7. Summary of Key Rules
+## 8. Summary of Key Rules
 
 1. **Always prefix new directories with datetime:** `YYYY-MM-DD_topic-slug/`
 2. **One topic per subdirectory.**
@@ -409,3 +409,4 @@ Concluding remarks.
 6. **Cite with precision** (theorem numbers, page numbers, section references).
 7. **Always create a PR and self-review before merging.**
 8. **Iterate review cycles until no issues remain.**
+9. **All commits to main must be GPG-signed**—if signing fails, stop and show the user the command.

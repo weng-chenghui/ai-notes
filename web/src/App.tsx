@@ -71,7 +71,7 @@ function App() {
             {theme === 'dark' ? '☀' : '☾'}
           </button>
         </div>
-        <p className="subtitle">A collection of technical documents and research notes</p>
+        <p className="subtitle">A collection of technical notes; errors, omissions, and plausible fallacies may remain.</p>
       </header>
 
       <main className="main">
