@@ -42,7 +42,7 @@
 \maketitle
 
 \begin{abstract}
-We present a diagrammatic framework for describing and comparing multi-party computation (MPC) protocols in a uniform language. Working in $\mathbf{FinSet}$, we fix an execution object $E=(\prod_i X_i)\times\Omega$ and treat a protocol as a family of morphisms out of $E$. Correctness is expressed as a commuting square: the protocol-induced reconstruction $\rho\circ\pi_S:E\to Y$ agrees with the ideal functionality $f\circ\pi_X:E\to Y$. For security analysis, we extend this base square to an ambient diagram by adjoining observation morphisms $\pi_{\mathrm{full}}:E\to B_{\mathrm{full}}$ and their restrictions $\pi_A:E\to B_A$ for corruption patterns $A$. This ambient diagram serves as an \emph{arrow-translation template}: protocols are compared by instantiating the same pattern of objects and arrows and by analyzing how adversarial observations behave under post-processing. After choosing distributions (e.g.\ sampling protocol randomness and pushing forward along $\pi_A$), the template yields simplex-valued kernels and supports two complementary security layers: Layer~1 compares induced view laws (exactly or approximately, e.g.\ via total variation or KL), while Layer~2 studies posterior structure within feasible fibers determined by inevitable constraints (typically the output). We illustrate the method on Shamir secret sharing, a homomorphic dot-product style protocol (DSDP), and a commodity-server multiplication-sharing primitive (SMC-SPP), emphasizing how corruption growth and protocol post-processing correspond to monotone information refinement via data processing.
+This note presents a diagrammatic framework for describing and comparing multi-party computation (MPC) protocols in a uniform language. Working in $\mathbf{FinSet}$, it fixes an execution object $E=(\prod_i X_i)\times\Omega$ and treats a protocol as a family of morphisms out of $E$. Correctness is expressed as a commuting square: the protocol-induced reconstruction $\rho\circ\pi_S:E\to Y$ agrees with the ideal functionality $f\circ\pi_X:E\to Y$. For security analysis, the base square is extended to an ambient diagram by adjoining observation morphisms $\pi_{\mathrm{full}}:E\to B_{\mathrm{full}}$ and their restrictions $\pi_A:E\to B_A$ for corruption patterns $A$. This ambient diagram serves as an \emph{arrow-translation template}: protocols are compared by instantiating the same pattern of objects and arrows and by analyzing how adversarial observations behave under post-processing. After choosing distributions (e.g.\ sampling protocol randomness and pushing forward along $\pi_A$), the template yields simplex-valued kernels and supports two complementary security layers: Layer~1 compares induced view laws (exactly or approximately, e.g.\ via total variation or KL), while Layer~2 studies posterior structure within feasible fibers determined by inevitable constraints (typically the output). The method is illustrated on Shamir secret sharing \cite{Shamir1979} and on representative protocol motifs, emphasizing how corruption growth and protocol post-processing correspond to monotone information refinement (data processing) \cite{CoverThomas2006}.
 \end{abstract}
 
 \tableofcontents
@@ -50,6 +50,9 @@ We present a diagrammatic framework for describing and comparing multi-party com
 \section{Introduction}
 
 Multi-party computation (MPC) enables parties to compute a function of their private inputs while controlling what information is revealed through an adversary's \emph{view}. While security arguments are often presented in protocol-specific terms (randomness choices, message algebra, simulator constructions), it is useful to have a single methodology that makes heterogeneous protocols comparable under a common description and a common set of leakage diagnostics. We therefore separate two roles. First, an \emph{arrow-translation} template standardizes protocol \emph{representation}: one execution is a point in a total space $E$ (inputs plus randomness), and each corruption pattern $A$ is represented by an observation map $\pi_A:E\to B_A$ (typically as a projection of a maximal transcript), yielding a uniform diagrammatic format across protocols. Second, the language of fibrations together with information-geometric tools standardizes protocol \emph{analysis}: Layer~1 concerns (exact or graded) indistinguishability of induced view laws as points in a probability simplex (e.g.\ collapse or small diameter under TV/KL), while Layer~2 concerns posterior structure within feasible constraint fibers determined by what is inevitably revealed (typically the output). We illustrate this unified workflow in the finite/discrete classical setting on three protocols exhibiting different security requirements and mechanisms.
+
+\paragraph{Citation note.}
+This document is maintained as research notes. Citations have been added only for a small set of foundational touchpoints (e.g.\ secret sharing \cite{Shamir1979}, data processing and information measures \cite{CoverThomas2006}, and information-geometric background \cite{AmariNagaoka2000}); further pinpoint citations should be added where specific external claims are relied upon.
 
 \subsection{Fundamental MPC View}
 
@@ -1611,6 +1614,9 @@ To get a drawable picture from a complicated transcript alphabet $B_A$:
 (ii) compute/estimate the induced laws $p(\cdot\mid x)$ or $p_{\theta}(\cdot\mid x)$,
 and (iii) interpret separation/motion/constraints using Figures~\ref{fig:toy-kernel-delta2}--\ref{fig:toy-i-projection} as templates.
 This does not replace a proof, but it provides an honest geometric visualization of kernels into simplices.
+
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}
 
