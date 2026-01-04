@@ -54,6 +54,7 @@ jobs:
               xelatex -interaction=nonstopmode -halt-on-error "$filename.tex"
 
               # If the document declares a bibliography, try BibTeX once, then re-run XeLaTeX for refs.
+              # Note: this workflow currently supports BibTeX via \bibliography/\bibliographystyle (not biblatex/biber).
               if grep -qE '\\\\bibliography\\{|\\\\bibliographystyle\\{' "$filename.tex"; then
                 bibtex "$filename" || true
               fi
