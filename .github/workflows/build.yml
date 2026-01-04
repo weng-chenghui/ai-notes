@@ -49,10 +49,17 @@ jobs:
               
               echo "Compiling $texfile..."
               
-              # Run xelatex twice for references
+              # Compile (and run BibTeX if needed)
               cd "$dir"
-              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex" || true
-              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex" || true
+              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex"
+
+              # If the document declares a bibliography, try BibTeX once, then re-run XeLaTeX for refs.
+              if grep -qE '\\\\bibliography\\{|\\\\bibliographystyle\\{' "$filename.tex"; then
+                bibtex "$filename" || true
+              fi
+
+              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex"
+              xelatex -interaction=nonstopmode -halt-on-error "$filename.tex"
               
               # Move PDF to build directory with version suffix
               if [ -f "$filename.pdf" ]; then
@@ -88,8 +95,8 @@ jobs:
                   continue
                 fi
                 
-                # Extract title from directory name (remove date prefix)
-                title=$(echo "$dirname" | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}_//' | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g')
+                # Extract title from directory name (remove date prefix) and preserve common acronyms
+                title=$(echo "$dirname" | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}_//' | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g' | sed -E 's/\bAi\b/AI/g; s/\bMpc\b/MPC/g')
                 
                 if [ "$first_doc" = false ]; then
                   echo "    ," >> build/manifest.json
