@@ -1,0 +1,424 @@
+\documentclass[11pt,a4paper]{article}
+
+% Encoding / fonts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Essential packages (per repository guidelines)
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Convenience
+\usepackage{mathtools}
+\usepackage{enumitem}
+
+% Theorem environments (per repository guidelines)
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Open question environment (per repository guidelines)
+\newenvironment{openquestion}{\par\textbf{Open Question.}\itshape}{\par}
+
+% Notation
+\newcommand{\Parties}{P}
+\newcommand{\Pow}{\mathcal{P}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\View}{\mathrm{View}}
+\newcommand{\Obs}{\mathrm{Obs}}
+\newcommand{\Enc}{\mathrm{Enc}}
+\newcommand{\Rec}{\mathrm{Rec}}
+\newcommand{\supp}{\mathrm{supp}}
+\newcommand{\PPT}{\mathrm{PPT}}
+\newcommand{\headd}{\mathbin{\oplus}}
+\newcommand{\hesmul}{\mathbin{\odot}}
+
+\title{MPC as a Monadic Interface with Knowledge-Semilattice Semantics}
+\author{AI Notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note records a minimal, self-contained mathematical framework that separates (i) a compositional interface for ``shared'' computations (a monadic interface) from (ii) a semantics of adversarial observation and knowledge. The adversary's knowledge is modeled as a meet-semilattice of possibility sets ordered by reverse inclusion, with sequential protocol steps refining knowledge via intersection. Two running examples are presented in a uniform language: Shamir secret sharing (privacy and reconstruction thresholds as non-singleton vs singleton knowledge) and the Distributed and Secure Dot-Product (DSDP) protocol (privacy relative to a dot-product leakage function, and the distinction between protocol leakage and functionality leakage under chosen coefficients).
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Monadic descriptions of multiparty computation (MPC) are attractive because they emphasize compositionality: complex protocols are assembled from smaller steps, and intermediate values remain in a shared, non-public form. However, security properties are not ``forced'' by a monad in isolation. A statement such as ``security means there is no comonadic extract'' is typically ill-typed: comonads come with counits by definition, and extraction maps must be stated relative to an explicit observation interface available to an adversary.
+
+The goal of this note is to provide a conservative formalism that captures the following two ideas simultaneously:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Shared computation interface.} A type former \(M\) is used to represent values held in a shared form, together with operations for composing protocol steps.
+  \item \textbf{Adversary knowledge semantics.} For each corrupted set \(S \subseteq \Parties\), an observation map produces an adversarial view; from this view one defines a \emph{knowledge set} of global secret states consistent with the observation. Knowledge sets form a meet-semilattice, and protocol execution refines knowledge via intersection with constraint-satisfaction sets.
+\end{itemize}
+
+The payoff is that both Shamir secret sharing and DSDP can be described in the same language: ``unauthorized'' observation corresponds to a non-singleton (often large) knowledge set for the target secret, whereas ``authorized'' observation corresponds to a singleton knowledge set.
+
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+\subsection{Parties and corruption}
+Fix a finite set of parties \(\Parties = \{1,\dots,n\}\). For \(S \subseteq \Parties\), the notation ``\(S\) is corrupted'' means the adversary obtains whatever information is assigned to \(S\) by the protocol semantics. The poset \((\Pow(\Parties), \subseteq)\) indexes adversary capabilities.
+
+\subsection{Global secret states and views}
+Let \(\Sigma\) denote a set of \emph{global secret states}. In examples, \(\Sigma\) will include both parties' private inputs and protocol randomness (``ancilla''). A protocol run induces a (possibly randomized) view for each corrupted set \(S\).
+
+For the support-based (possibilistic) layer, it is convenient to define knowledge sets via supports of distributions. The computational layer will introduce indistinguishability of ensembles.
+
+\section{Shared computation as a monadic interface}
+\label{sec:mpc-monad}
+
+This section records an abstract interface; it is intentionally weaker than a full denotational semantics of interactive randomized protocols.
+
+\begin{definition}[Shared value interface]
+\label{def:shared-interface}
+Let \(\mathsf{Ty}\) be a collection of types (or objects). A \emph{shared value interface} consists of:
+\begin{itemize}[leftmargin=2em]
+  \item a type former \(M : \mathsf{Ty} \to \mathsf{Ty}\),
+  \item for each \(A\), a unit map \(\mathrm{unit}_A : A \to M A\),
+  \item for each \(A,B\), a bind operation mapping \(f : A \to M B\) to \(f^\ast : M A \to M B\),
+\end{itemize}
+satisfying the usual monad laws at the level of this interface (left unit, right unit, associativity).
+\end{definition}
+
+\begin{remark}
+The interface above is a notational device: it packages ``do not reveal intermediate values'' as a typing discipline (\(M A\) instead of \(A\)). On its own it does \emph{not} express who can observe what, nor what security means. Those are introduced by observation maps indexed by corrupted sets.
+\end{remark}
+
+\subsection{Ancilla as hidden state}
+In typical MPC protocols, randomness (and other hidden state such as MAC keys or preprocessing correlations) is sampled and then threaded through later steps. This note uses the term \emph{ancilla} for any hidden internal state that participates in correctness and security arguments. Formally, ancilla is accounted for by enlarging \(\Sigma\) so that global secret states include the protocol's random coins.
+
+\subsection{``Split--reconstruct'' as an invariant}
+Many concrete MPC protocols maintain an invariant of the form:
+\begin{quote}
+every intermediate value is represented in a canonical shared form, and protocol steps rerandomize or reshare so that the canonical form is preserved.
+\end{quote}
+For example, Shamir-based multiplication increases polynomial degree and is followed by a degree-reduction (or resharing) subprotocol; homomorphic-encryption-based steps often add fresh random masks that are later removed only when producing the final output. In this note, such behavior is not encoded as an additional algebraic law of the monad, but rather understood as part of the intended meaning of Kleisli arrows \(A\to M B\): they are \emph{protocol steps} that consume shared values and return shared values while preserving the chosen representation invariant.
+
+\section{Adversary observation and knowledge}
+\label{sec:observation-knowledge}
+
+\subsection{Observation maps}
+Fix a protocol implementing computations on shared values. For each corrupted set \(S\subseteq \Parties\) and type \(A\), assume there is an \emph{observation space} \(\Obs_S(A)\) and an \emph{observation map}
+\begin{equation}
+\label{eq:view-map}
+  \View_{S,A} : M A \to \Obs_S(A).
+\end{equation}
+Intuitively, \(\Obs_S(A)\) represents what \(S\) can see about a shared \(A\)-value (e.g., a subset of shares and transcripts). The map \(\View_{S,A}\) is the semantic counterpart of ``the adversary can only observe fewer than \(t\) shares''.
+
+\subsection{Knowledge sets from views}
+Let \(X\) be a random variable with values in a finite set \(U\). Its support is \(\supp(X) := \{u\in U : \Pr[X=u] > 0\}\).
+
+\begin{definition}[Knowledge set (support-based)]
+\label{def:knowledge-set}
+Fix \(S\subseteq \Parties\) and an observation \(\tau \in \Obs_S(A)\). The \emph{knowledge set} associated to \(\tau\) is
+\begin{equation}
+\label{eq:knowledge-set}
+  K_S(\tau) \;:=\; \{\sigma \in \Sigma : \tau \in \supp(\View_S(\sigma))\},
+\end{equation}
+where \(\View_S(\sigma)\) denotes the \(S\)-view induced by running the protocol on global secret state \(\sigma\).
+\end{definition}
+
+\begin{remark}
+The definition is phrased in terms of supports so it remains meaningful even before choosing a concrete probability distribution on \(\Sigma\). It captures a ``possible worlds'' notion: \(\sigma\) remains possible after seeing \(\tau\) if \(\tau\) could arise from \(\sigma\) with nonzero probability.
+\end{remark}
+
+\subsection{Monotonicity under increased corruption}
+To state monotonicity, assume the observation spaces are compatible with restriction: for \(S\subseteq T\subseteq \Parties\), there is a map \(\rho_{T\to S} : \Obs_T(A)\to \Obs_S(A)\) such that for all protocol runs,
+\(\View_S = \rho_{T\to S}\circ \View_T\).
+
+\begin{lemma}[Knowledge monotonicity]
+\label{lem:knowledge-monotonicity}
+Let \(S\subseteq T\subseteq \Parties\) and let \(\tau_T\in \Obs_T(A)\). Set \(\tau_S := \rho_{T\to S}(\tau_T)\). Then
+\[
+K_T(\tau_T) \subseteq K_S(\tau_S).
+\]
+\end{lemma}
+
+\begin{proof}
+If \(\sigma \in K_T(\tau_T)\), then \(\tau_T \in \supp(\View_T(\sigma))\). Applying \(\rho_{T\to S}\) and using \(\View_S = \rho_{T\to S}\circ \View_T\), it follows that \(\tau_S \in \supp(\View_S(\sigma))\), hence \(\sigma \in K_S(\tau_S)\).
+\end{proof}
+
+\section{The meet-semilattice pattern}
+\label{sec:meet-semilattice}
+
+\subsection{Knowledge as a meet-semilattice}
+\begin{definition}[Knowledge order and meet]
+\label{def:knowledge-semilattice}
+Let \(\mathcal{K}\) be the set of all subsets of \(\Sigma\). Define an order \(\preceq\) on \(\mathcal{K}\) by reverse inclusion:
+\[
+K_1 \preceq K_2 \quad \text{iff} \quad K_1 \supseteq K_2.
+\]
+Define meet by intersection: \(K_1 \wedge K_2 := K_1 \cap K_2\).
+\end{definition}
+
+\begin{lemma}
+\label{lem:semilattice}
+\((\mathcal{K}, \preceq, \wedge)\) is a meet-semilattice whose top element is \(\Sigma\).
+\end{lemma}
+
+\begin{proof}
+Intersection is associative, commutative, and idempotent, and satisfies \(K_1 \cap K_2 \subseteq K_i\), which translates to \(K_1\wedge K_2 \preceq K_i\) under reverse inclusion. Moreover, \(\Sigma\cap K = K\), so \(\Sigma\) is top for \(\preceq\).
+\end{proof}
+
+\subsection{Sequential refinement as meet}
+Suppose a protocol step reveals (to a fixed adversary \(S\)) an observation \(\tau\) imposing a constraint ``\(\sigma\in C(\tau)\)''. Then the knowledge update is \(K \mapsto K \cap C(\tau)\), i.e.\ a meet operation in the semilattice.
+
+\begin{lemma}[Composition of constraints]
+\label{lem:constraint-composition}
+Let \(C_1,C_2\subseteq \Sigma\) be constraint sets. If after two protocol steps the adversary learns that \(\sigma\in C_1\) and \(\sigma\in C_2\), then the cumulative knowledge set is \(K = \Sigma \cap C_1 \cap C_2\). More generally, a finite sequence of observations yields knowledge equal to the intersection of the corresponding constraint sets.
+\end{lemma}
+
+\begin{proof}
+Immediate from the definition of knowledge as the set of states consistent with all observed constraints, and associativity/commutativity of intersection.
+\end{proof}
+
+\begin{remark}[Transcripts as iterated constraints]
+One way to define \(C(\tau)\) is: for a concrete transcript prefix \(\tau\) (messages, local outputs, and any auxiliary leakage assigned to the adversary), let \(C(\tau)\subseteq \Sigma\) be the set of global states that can generate \(\tau\) with nonzero probability. Then extending a transcript by one more observed message corresponds to intersecting with one more such constraint set, i.e.\ applying meet once more.
+\end{remark}
+
+\begin{remark}[Singleton criterion and its limitations]
+\label{rem:singleton-criterion}
+Let \(\pi : \Sigma \to \Theta\) be the projection onto a \emph{target secret component} (e.g., the secret \(s\) in Shamir, or a party's private input). If \(\pi(K)\) is a singleton, then the adversary can determine that component. This is a useful \emph{support-based} notion of breakage. It does not, by itself, rule out partial leakage when \(|\pi(K)|>1\), and it must be complemented by probabilistic/computational notions when those are in scope.
+\end{remark}
+
+\begin{remark}[Bayesian refinement of the meet-semilattice view]
+The meet-semilattice semantics tracks \emph{which} global states remain possible. A Bayesian semantics tracks, in addition, a posterior distribution on \(\Sigma\) given the transcript. In idealized settings where observations correspond to hard constraints, intersection by \(C(\tau)\) corresponds to conditioning on the event \(\sigma\in C(\tau)\). In adaptive (malicious) settings, the transcript distribution depends on an adversary strategy (e.g.\ chosen inputs of corrupted parties), so the posterior can concentrate on a small subset of the remaining solution set even when that set is not a singleton.
+\end{remark}
+
+\section{Computational indistinguishability and leakage}
+\label{sec:computational-security}
+
+This section fixes definitions to talk about \(\PPT\) adversaries and leakage functions, without asserting specific cryptographic assumptions beyond what is stated.
+
+\begin{definition}[Negligible functions]
+\label{def:negl}
+A function \(\mu:\N\to\mathbb{R}_{\ge 0}\) is \emph{negligible} if for every polynomial \(p\) there exists \(N_0\) such that for all \(\lambda\ge N_0\), \(\mu(\lambda)\le 1/p(\lambda)\).
+\end{definition}
+
+\begin{definition}[Ensembles and indistinguishability]
+\label{def:indist}
+Let \(\{X_\lambda\}_{\lambda\in\N}\) and \(\{Y_\lambda\}_{\lambda\in\N}\) be distribution ensembles over bitstrings. They are \emph{computationally indistinguishable}, written \(X \approx_c Y\), if for every probabilistic polynomial-time distinguisher \(D\),
+\[
+\left| \Pr[D(1^\lambda, X_\lambda)=1] - \Pr[D(1^\lambda, Y_\lambda)=1] \right|
+\]
+is negligible (in the sense of \cref{def:negl}) as a function of \(\lambda\).
+\end{definition}
+
+\begin{definition}[IND-CPA security]
+\label{def:indcpa}
+A public-key encryption scheme \((\mathsf{Gen},E,D)\) is \emph{IND-CPA secure} if for every \(\PPT\) adversary \(\mathcal{A}\), the advantage in the following experiment is negligible in \(\lambda\):\ \(\mathsf{Gen}(1^\lambda)\) outputs \((pk,sk)\); \(\mathcal{A}\) outputs two equal-length messages \(m_0,m_1\); a uniform bit \(b\leftarrow\{0,1\}\) is sampled and \(c\leftarrow E_{pk}(m_b)\) is returned to \(\mathcal{A}\); finally \(\mathcal{A}\) outputs a bit \(b'\), and the advantage is \(|\Pr[b'=b]-\tfrac12|\).
+\end{definition}
+
+\begin{definition}[View security relative to leakage (semi-honest)]
+\label{def:leakage-security}
+Let \(\ell:\Sigma \to \{0,1\}^\ast\) be a leakage function. A protocol is \emph{semi-honest secure for corrupted set \(S\) relative to \(\ell\)} if there exists a \(\PPT\) simulator \(\mathsf{Sim}\) such that the ensembles
+\[
+\{\View_S(\sigma;1^\lambda)\}_{\lambda\in\N}
+\quad\text{and}\quad
+\{\mathsf{Sim}(\ell(\sigma);1^\lambda)\}_{\lambda\in\N}
+\]
+are computationally indistinguishable, where \(\View_S(\sigma;1^\lambda)\) denotes the \(S\)-view distribution at security parameter \(\lambda\).
+\end{definition}
+
+\begin{remark}
+The support-based knowledge set of \cref{def:knowledge-set} can be recovered as \(\supp(\View_S(\sigma))\) in settings where views are finite distributions. Computational security is strictly weaker than support-based privacy: \(\approx_c\) allows supports to overlap in complicated ways as long as no \(\PPT\) distinguisher separates them.
+\end{remark}
+
+\section{Example I: Shamir secret sharing}
+\label{sec:shamir}
+
+\subsection{Setup}
+Fix a finite field \(\F\) and a privacy parameter \(t\) with \(0 \le t < n\). Fix distinct nonzero evaluation points \(\alpha_1,\dots,\alpha_n\in\F^\times\). (In particular, this requires \(|\F|>n\).) A global secret state consists of a secret \(s\in\F\) and random coefficients \((a_1,\dots,a_t)\in\F^t\). Set
+\[
+\Sigma_{\mathrm{Sh}} := \F \times \F^t.
+\]
+Define the polynomial \(p_\sigma(x) := s + a_1 x + \cdots + a_t x^t\) for \(\sigma=(s,a_1,\dots,a_t)\).
+
+The sharing map is
+\[
+\Enc(\sigma) := (p_\sigma(\alpha_1), \dots, p_\sigma(\alpha_n)) \in \F^{\Parties}.
+\]
+For \(S\subseteq \Parties\), the \(S\)-view is the restriction to coordinates in \(S\), denoted \(\Enc(\sigma)\vert_S \in \F^S\). This is the observation map \(\View_S\) for the support-based layer.
+
+\subsection{Knowledge sets and thresholds}
+Fix \(S\subseteq \Parties\) and an observed share vector \(y\in\F^S\). Define
+\[
+K_S(y) := \{\sigma\in\Sigma_{\mathrm{Sh}} : \Enc(\sigma)\vert_S = y\}.
+\]
+Let \(\pi_s : \Sigma_{\mathrm{Sh}}\to \F\) be projection to the secret coordinate.
+
+\begin{proposition}[Privacy as non-singleton knowledge]
+\label{prop:shamir-privacy}
+If \(|S|\le t\) and \(y\in\F^S\) is any share vector that is consistent with some \(\sigma\in\Sigma_{\mathrm{Sh}}\), then
+\[
+\pi_s(K_S(y)) = \F.
+\]
+In particular, the secret is not determined by \(S\)'s observation.
+\end{proposition}
+
+\begin{proof}
+Fix any \(s'\in\F\). Choose \(\sigma_0=(s_0,a_{0,1},\dots,a_{0,t})\in K_S(y)\), which exists by consistency. Let \(p_0:=p_{\sigma_0}\). It suffices to build a degree-\(\le t\) polynomial \(q\) such that
+\[
+q(i)=0 \text{ for all } i\in S,
+\qquad
+q(0)=s'-s_0.
+\]
+Then \(p':=p_0+q\) has degree \(\le t\), satisfies \(p'(i)=y_i\) for \(i\in S\), and has constant term \(s'\), yielding \(\sigma'\in K_S(y)\) with \(\pi_s(\sigma')=s'\).
+
+To construct \(q\), pick a subset \(S_0\subseteq S\) of size \(|S|\) (namely \(S\) itself) and choose any polynomial \(r\) of degree \(\le t-|S|\). Define
+\[
+q(x) := (s'-s_0)\cdot \prod_{i\in S} \frac{x-\alpha_i}{-\alpha_i}\; +\; \Bigl(\prod_{i\in S} (x-\alpha_i)\Bigr)\cdot r(x).
+\]
+Then \(q(\alpha_i)=0\) for all \(i\in S\) by the factor \(\prod_{i\in S}(x-\alpha_i)\), and \(q(0)=s'-s_0\) because the first term evaluates to \(s'-s_0\) at \(x=0\) while the second term vanishes at \(x=0\). Moreover \(\deg(q)\le |S| + (t-|S|)=t\). This completes the construction.
+\end{proof}
+
+\begin{proposition}[Reconstruction as singleton knowledge]
+\label{prop:shamir-reconstruct}
+If \(|S|=t+1\), then for any consistent \(y\in\F^S\),
+\[
+|\pi_s(K_S(y))| = 1.
+\]
+\end{proposition}
+
+\begin{proof}
+For \(|S|=t+1\), there is a unique degree-\(\le t\) polynomial interpolating the points \(\{(i,y_i)\}_{i\in S}\). Its constant term is therefore uniquely determined, so \(\pi_s(K_S(y))\) is a singleton.
+\end{proof}
+
+\begin{remark}[``Party index as input'']
+The party indices are not secrets. What varies adversarially is the subset \(S\subseteq \Parties\), which indexes which coordinates are observed. In that sense, \(S\) is an ``input'' to the observation/knowledge semantics rather than to the secret-sharing map itself.
+\end{remark}
+
+\subsection{Perfect privacy as leakage-relative security}
+Although this note focuses on a support-based knowledge view, Shamir privacy is in fact stronger: for \(|S|\le t\), the distribution of \(\Enc(\sigma)\vert_S\) does not depend on the secret \(s\).
+
+\begin{proposition}[Perfect privacy implies simulation with empty leakage]
+\label{prop:shamir-perfect-privacy}
+Assume the coefficients \((a_1,\dots,a_t)\) are sampled uniformly from \(\F^t\). Fix \(S\subseteq \Parties\) with \(|S|\le t\). Then the ensembles \(\{\Enc(s,a)\vert_S\}\) are identical for all \(s\in\F\). In particular, Shamir sharing is semi-honest secure relative to the leakage \(\ell(s,a)=\emptyset\) for such \(S\).
+\end{proposition}
+
+\begin{proof}
+Fix \(S\) and write the observed share vector as
+\[
+\Enc(s,a)\vert_S = s\cdot \mathbf{1} + L_S(a),
+\]
+where \(\mathbf{1}\in\F^S\) is the all-ones vector and \(L_S:\F^t\to \F^S\) is the linear map \(a\mapsto ( \sum_{j=1}^t a_j i^j )_{i\in S}\). For any fixed \(s\), the random variable \(L_S(a)\) is uniform over its image because \(a\) is uniform and \(L_S\) is linear. Adding the constant shift \(s\cdot \mathbf{1}\) merely translates this uniform distribution; hence the distribution of \(\Enc(s,a)\vert_S\) is independent of \(s\). A simulator can therefore sample the \(S\)-view without knowing \(s\).
+\end{proof}
+
+\section{Example II: DSDP (Distributed and Secure Dot-Product)}
+\label{sec:dsdp}
+
+\subsection{Protocol and global state}
+This example is stated for three parties \(A,B,C\) and a message space that can be identified with a finite field \(\F\) (or a ring; the linear-algebraic discussion below uses only additive structure). Let Alice's private inputs be \((u_1,u_2,u_3,v_1)\in \F^4\), Bob's private input be \(v_2\in\F\), and Charlie's private input be \(v_3\in\F\). Alice also samples fresh random masks \(r_2,r_3\in\F\).
+
+Let \((\mathsf{Gen},E,D)\) be a public-key encryption scheme that is additively homomorphic with publicly computable operations \(\headd,\hesmul\) as in the protocol dialect. Parties \(A,B,C\) generate keypairs \((pk_A,sk_A)\), \((pk_B,sk_B)\), \((pk_C,sk_C)\), and publish the public keys.
+
+For the purposes of this note, the global secret state space can be taken as
+\[
+\Sigma_{\mathrm{DSDP}} := \F^4 \times \F \times \F \times \F^2,
+\]
+whose elements are tuples \(\sigma=(u_1,u_2,u_3,v_1,v_2,v_3,r_2,r_3)\). (Keys and public parameters are treated as external to \(\Sigma_{\mathrm{DSDP}}\).)
+
+\subsection{Functionality and knowledge sets}
+Consider three parties \(A,B,C\). Alice chooses coefficients \((u_1,u_2,u_3)\) and an input \(v_1\). Bob chooses \(v_2\), and Charlie chooses \(v_3\). The target output is
+\begin{equation}
+\label{eq:dsdp-dot}
+s = u_1 v_1 + u_2 v_2 + u_3 v_3.
+\end{equation}
+From Alice's perspective, after learning \(s\) and knowing \((u_1,u_2,u_3,v_1)\), the set of possible pairs \((v_2,v_3)\) consistent with \cref{eq:dsdp-dot} is
+\begin{equation}
+\label{eq:dsdp-knowledge-set}
+K_A := \{(v_2,v_3)\in\F^2 : u_2 v_2 + u_3 v_3 = s - u_1 v_1\}.
+\end{equation}
+
+\begin{proposition}[Affine-line knowledge and singleton components]
+\label{prop:dsdp-affine}
+Assume \((u_2,u_3)\neq (0,0)\). Then \(K_A\) is an affine line in \(\F^2\) and hence \(|K_A|=|\F|\). Moreover:
+\begin{itemize}[leftmargin=2em]
+  \item If \(u_2=0\) and \(u_3\neq 0\), then the projection of \(K_A\) to the \(v_3\)-coordinate is a singleton, so \(v_3\) is determined by Alice's output.
+  \item If \(u_3=0\) and \(u_2\neq 0\), then the projection of \(K_A\) to the \(v_2\)-coordinate is a singleton.
+\end{itemize}
+\end{proposition}
+
+\begin{proof}
+The set \(K_A\) is the solution set to a single nontrivial linear equation in two variables, hence an affine line and therefore has \(|\F|\) elements. If \(u_2=0\) and \(u_3\neq 0\), the equation reduces to \(u_3 v_3 = s-u_1 v_1\), which has a unique solution for \(v_3\), while \(v_2\) is unconstrained. The other case is symmetric.
+\end{proof}
+
+\begin{remark}[Functionality leakage vs protocol leakage]
+The singleton cases in \cref{prop:dsdp-affine} are not necessarily cryptographic failures: if Alice is \emph{allowed} to choose \((u_1,u_2,u_3)\) freely, then the ideal dot-product functionality already reveals \(v_3\) when \(u_2=0\) and \(u_3\neq 0\) (and reveals \(v_2\) when \(u_3=0\) and \(u_2\neq 0\)). Preventing such inference requires restricting Alice's allowed coefficients or changing the released functionality.
+\end{remark}
+
+\begin{proposition}[Chosen-coefficient attacks are inherent to dot-product oracles]
+\label{prop:dsdp-oracle-recovery}
+Suppose Alice is given oracle access to the dot-product functionality \((u_1,u_2,u_3)\mapsto u_1 v_1 + u_2 v_2 + u_3 v_3\) with fixed unknown \((v_1,v_2,v_3)\in\F^3\), and Alice may choose \((u_1,u_2,u_3)\) adaptively. Then Alice can recover \((v_1,v_2,v_3)\) with three queries.
+\end{proposition}
+
+\begin{proof}
+Query \(u=(1,0,0)\) to obtain \(v_1\). Query \(u=(0,1,0)\) to obtain \(v_2\). Query \(u=(0,0,1)\) to obtain \(v_3\).
+\end{proof}
+
+\subsection{Computational security relative to dot-product leakage}
+The DSDP protocol uses an additively homomorphic public-key encryption scheme with operations
+\[
+E(m_1)\headd E(m_2) = E(m_1+m_2),
+\qquad
+E(m)\hesmul k = E(km),
+\]
+and decryption \(D\) under the corresponding secret key. In the semi-honest setting, it is natural to set the leakage to Alice as \(\ell(u,v) := s\), where \(s\) is defined by \cref{eq:dsdp-dot}.
+
+\begin{proposition}[Semi-honest simulation for corrupted Alice (proof sketch)]
+\label{prop:dsdp-sim-alice}
+Assume the encryption scheme is IND-CPA secure and supports the homomorphic operations used by DSDP. Consider the corruption pattern where Alice is corrupted and Bob and Charlie are honest. Then DSDP is semi-honest secure relative to leakage \(\ell(u,v)=s\) (with Alice's own inputs included in \(\sigma\)) in the sense of \cref{def:leakage-security}.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Alice's view consists of her local randomness \(r_2,r_3\), her own inputs \((u_1,u_2,u_3,v_1)\), and the ciphertext messages she receives and sends. The only plaintext she ever learns from other parties is the final decrypted value
+\[
+d_3 = u_2 v_2 + r_2 + u_3 v_3 + r_3,
+\]
+from which she computes \(s = d_3 - r_2 - r_3 + u_1 v_1\).
+
+Define a simulator \(\mathsf{Sim}\) that, given \(s\) (and Alice's own inputs and randomness), proceeds as follows:
+\begin{itemize}[leftmargin=2em]
+  \item sample simulated ciphertexts \(c_2 \leftarrow E_B(0)\) and \(c_3 \leftarrow E_C(0)\) to stand in for Bob's and Charlie's initial encryptions \(E_B(v_2)\) and \(E_C(v_3)\);
+  \item compute Alice's outgoing ciphertexts using the public homomorphic operations exactly as Alice would, but applied to \(c_2,c_3\) (this yields encryptions of \(r_2\) under Bob's key and \(r_3\) under Charlie's key);
+  \item set the plaintext \(d_3 := s - u_1 v_1 + r_2 + r_3\) and output a simulated final message \(E_A(d_3)\) to Alice.
+\end{itemize}
+By IND-CPA (in the sense of \cref{def:indcpa}), replacing \(E_B(v_2)\) by \(E_B(0)\) and \(E_C(v_3)\) by \(E_C(0)\) is computationally indistinguishable to Alice (who does not possess Bob's or Charlie's secret keys). Since the homomorphic operations are publicly computable and preserve correctness of decryption, the remainder of Alice's ciphertext transcript is efficiently computable from public information and her own randomness. The simulated final ciphertext decrypts to a value consistent with the leaked \(s\). A standard hybrid argument completes the indistinguishability claim.
+\end{proof}
+
+\section{Composition and ``split--reconstruct'' intuition}
+\label{sec:composition}
+
+The slogan ``each bind performs split--reconstruct'' is best understood at the level of invariants: each protocol step consumes shared inputs, performs local/interactive computation, and produces a new shared output in canonical form (often via resharing, rerandomization, or degree reduction), while keeping intermediate values within \(M\).
+
+From the adversary's perspective, each step yields an observation \(\tau\) that induces a constraint set \(C(\tau)\subseteq \Sigma\). The cumulative knowledge is the meet (intersection) of all accumulated constraints. This is the meet-semilattice pattern of \cref{sec:meet-semilattice}.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+This note separated two roles:
+\begin{itemize}[leftmargin=2em]
+  \item a monadic interface \(M\) capturing compositional shared computation,
+  \item an indexed observation/knowledge semantics whose values form a meet-semilattice under intersection.
+\end{itemize}
+Within this unified language, Shamir secret sharing exhibits a sharp transition from non-singleton to singleton knowledge as the corrupted set crosses the reconstruction threshold. The DSDP protocol illustrates how a knowledge-set analysis reveals what is determined by the released functionality (the dot-product) and clarifies when ``revealing a component'' is inherent to the function rather than a protocol-level leakage.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+
