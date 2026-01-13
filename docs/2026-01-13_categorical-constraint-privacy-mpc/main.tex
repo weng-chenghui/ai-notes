@@ -53,7 +53,7 @@ Let $V_C$ be the random variable representing the \emph{full view} of the corrup
 \[
 \Pr[V_C = v \mid x_C,x_{\bar C}].
 \]
-This note deliberately does not fix a particular threat model (semi-honest vs.\ malicious); the only assumption used below is that the notion of ``view'' has been chosen to match the intended adversarial power.
+Concretely, fix a (possibly randomized) protocol $\Pi$. For each input pair $(x_C,x_{\bar C})$, running $\Pi$ induces a distribution on the corrupted view $V_C$; this is the distribution used in \cref{sec:constraints,sec:probabilistic}. In a malicious model, one would instead quantify over adversarial strategies $A$ controlling the parties in $C$ and interpret $\Pr[V_C=\cdot\mid x_C,x_{\bar C}]$ as the distribution induced by the joint execution of $(\Pi,A)$.
 
 \begin{remark}
 \label{rem:view-conditioning}
@@ -137,6 +137,13 @@ $
 V_C \perp X_{\bar C}\mid (X_C,Y)
 $
 in the usual probabilistic sense. Conversely, in many common measure-theoretic settings, conditional independence for all priors implies a version of \cref{def:fiber-ind}.
+For a categorical treatment of conditional independence and related factorization properties for Markov kernels, see \cite{Fritz2020}.
+\end{remark}
+
+\begin{remark}
+\label{rem:zac-vs-fiber-ind}
+The set-based notion \cref{def:zac} and the distributional notion \cref{def:fiber-ind} are logically distinct.
+Informally, \cref{def:zac} forbids the view from ruling out any $x_{\bar C}$ within a fixed fiber (a support-level constraint), whereas \cref{def:fiber-ind} forbids the view distribution from varying \emph{within} a fiber (a law-level constraint). Without additional assumptions on how the transcript randomness is modeled, neither notion implies the other.
 \end{remark}
 
 \begin{definition}[Factorization through $(X_C,Y)$]
@@ -201,7 +208,11 @@ h := \langle \pi_C,f\rangle : X_C\times X_{\bar C}\to X_C\times Y,
 \qquad
 k := t : X_C\times X_{\bar C}\rightsquigarrow V_C.
 \]
-If one extracts from $k$ a deterministic observation (e.g.\ by fixing randomness, or by taking support information), then ``zero additional constraints'' corresponds to requiring
+One concrete deterministic extraction from a channel $t$ is its \emph{support-valued} observation: for each input $(x_C,x_{\bar C})$, consider the subset
+\[
+\mathrm{Supp}(t(x_C,x_{\bar C})) \;:=\; \{\,v\in V_C \mid \Pr[V_C=v\mid x_C,x_{\bar C}]>0\,\}.
+\]
+Treating $\mathrm{Supp}(t(\cdot))$ as the observation, ``zero additional constraints'' corresponds to requiring that observing \emph{which} view-values are possible does not refine the equivalence relation induced by $h$, i.e.\ that the induced indistinguishability relation is unchanged:
 \[
 \sim_{h} \;=\; \sim_{(h,k)}.
 \]
