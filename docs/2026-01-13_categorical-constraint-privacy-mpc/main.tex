@@ -1,0 +1,247 @@
+\documentclass[11pt,a4paper]{article}
+
+% Encoding
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Math + references (required by AGENTS.md)
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Diagrams
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,cd}
+\usepackage{tikz-cd}
+
+% Theorem environments (required by AGENTS.md)
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Open question environment (required by AGENTS.md)
+\newenvironment{openquestion}{\par\textbf{Open Question.}\itshape}{\par}
+
+\title{Constraint-Based and Categorical Notions of MPC Privacy}
+\author{AI Notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note records a constraint-based perspective on secure multiparty computation (MPC) privacy in which protocol messages are treated as additional constraints on the honest parties' inputs. A ``ground fact'' formulation is given: after observing the output and the corrupted parties' view, no new facts about honest inputs should become logically forced beyond those implied by the output itself. The same idea is expressed probabilistically as a conditional-independence/factorization property and then rephrased categorically using Markov categories (channels) and, in a deterministic setting, kernel-pair refinement (partitions of possible worlds). The aim is a self-contained notation for talking about privacy without taking simulation as a primitive.
+\end{abstract}
+
+\section{Setup and notation}
+\label{sec:setup}
+
+Let there be $n$ parties. Fix an adversarial corruption set $C\subseteq \{1,\dots,n\}$, and write $\bar C$ for the honest parties.
+Let $X_C$ denote the space of corrupted inputs and $X_{\bar C}$ the space of honest inputs. Let
+\[
+f : X_C \times X_{\bar C} \to Y
+\]
+be a deterministic target function, and let $y=f(x_C,x_{\bar C})$ be the output.
+
+Let $V_C$ be the random variable representing the \emph{full view} of the corrupted parties, meaning all values they observe during an execution (e.g.\ received messages, local coins, sent messages, and any local state). For each input pair $(x_C,x_{\bar C})$, the protocol induces a distribution
+\[
+\Pr[V_C = v \mid x_C,x_{\bar C}].
+\]
+Concretely, fix a (possibly randomized) protocol $\Pi$. For each input pair $(x_C,x_{\bar C})$, running $\Pi$ induces a distribution on the corrupted view $V_C$; this is the distribution used in \cref{sec:constraints,sec:probabilistic}. In a malicious model, one would instead quantify over adversarial strategies $A$ controlling the parties in $C$ and interpret $\Pr[V_C=\cdot\mid x_C,x_{\bar C}]$ as the distribution induced by the joint execution of $(\Pi,A)$.
+
+\begin{remark}
+\label{rem:view-conditioning}
+All privacy statements below are \emph{conditional} on the corrupted inputs $x_C$ and the output $y$. This is essential: in many functions, the output $y$ already implies nontrivial information about $x_{\bar C}$ given $x_C$, and the point is to forbid \emph{additional} leakage through the transcript.
+\end{remark}
+
+\section{Constraints, possible worlds, and ``ground facts''}
+\label{sec:constraints}
+
+The informal idea ``messages are constraints'' can be captured by comparing two sets of possible honest inputs: those consistent with the \emph{ideal leakage} $(x_C,y)$ and those consistent with $(x_C,y)$ \emph{and} the observed view $v$.
+
+\begin{definition}[Ideal fiber and posterior fiber]
+\label{def:fibers}
+Fix $x_C\in X_C$ and $y\in Y$. Define the \emph{ideal fiber}
+\[
+S_0(x_C,y) \;:=\; \{\,x_{\bar C}\in X_{\bar C} \mid f(x_C,x_{\bar C})=y\,\}.
+\]
+For an observed view value $v$, define the \emph{posterior fiber}
+\[
+S_v(x_C,y,v) \;:=\; \Bigl\{\,x_{\bar C}\in X_{\bar C} \ \Bigm|\ f(x_C,x_{\bar C})=y \ \wedge\  \Pr[V_C=v\mid x_C,x_{\bar C}]>0 \Bigr\}.
+\]
+\end{definition}
+
+\begin{definition}[Zero-additional-constraints privacy]
+\label{def:zac}
+A protocol satisfies \emph{zero-additional-constraints privacy} for corruption set $C$ if for all $x_C,y$ and for all view values $v$ with $\Pr[V_C=v\mid x_C,x_{\bar C}]>0$ for some $x_{\bar C}$ satisfying $f(x_C,x_{\bar C})=y$, one has
+\[
+S_v(x_C,y,v) \;=\; S_0(x_C,y).
+\]
+\end{definition}
+
+\begin{remark}
+\label{rem:zac-strong}
+\cref{def:zac} is intentionally strong: it forbids the transcript from making any honest input \emph{impossible} beyond what $(x_C,y)$ already forbids. In many settings a weaker, distributional ``no statistical update'' notion is preferable; see \cref{sec:probabilistic}.
+\end{remark}
+
+To phrase the same idea in terms of ``ground facts,'' model a ground fact as a predicate on $X_{\bar C}$.
+
+\begin{definition}[Ground-fact non-amplification]
+\label{def:ground-facts}
+Let $\varphi : X_{\bar C}\to\{\mathsf{true},\mathsf{false}\}$ be a predicate.
+A protocol satisfies \emph{ground-fact non-amplification} for corruption set $C$ if for all $x_C,y,v$:
+\[
+\Bigl(\forall x_{\bar C}\in S_v(x_C,y,v),\ \varphi(x_{\bar C})=\mathsf{true}\Bigr)\ \Longrightarrow\
+\Bigl(\forall x_{\bar C}\in S_0(x_C,y),\ \varphi(x_{\bar C})=\mathsf{true}\Bigr).
+\]
+\end{definition}
+
+\begin{proposition}
+\label{prop:zac-implies-ground}
+Zero-additional-constraints privacy (\cref{def:zac}) implies ground-fact non-amplification (\cref{def:ground-facts}).
+\end{proposition}
+
+\begin{proof}
+If $S_v(x_C,y,v)=S_0(x_C,y)$, then any predicate $\varphi$ that holds on all of $S_v$ also holds on all of $S_0$.
+\end{proof}
+
+\begin{remark}
+\label{rem:ground-does-not-imply-zac}
+Ground-fact non-amplification can be strictly weaker than \cref{def:zac} if the allowed class of predicates $\varphi$ is restricted. If all predicates are allowed, then \cref{def:ground-facts} is equivalent to $S_v=S_0$ by taking $\varphi$ to be the characteristic function of $S_v$.
+\end{remark}
+
+\section{Probabilistic ``no extra information'' and factorization}
+\label{sec:probabilistic}
+
+The set-based notion above treats all positive-probability transcripts as equally informative. A distributional notion instead requires that the \emph{distribution} of the view depend on honest inputs only through the legitimate leakage $(x_C,y)$.
+
+\begin{definition}[Fiber-indistinguishability of views]
+\label{def:fiber-ind}
+Fix $C$. A protocol satisfies \emph{fiber-indistinguishability} if for all $x_C\in X_C$ and all $x_{\bar C},x'_{\bar C}\in X_{\bar C}$ such that
+$f(x_C,x_{\bar C})=f(x_C,x'_{\bar C})$, one has equality of distributions
+\[
+V_C\mid (x_C,x_{\bar C}) \;\equiv\; V_C\mid (x_C,x'_{\bar C}).
+\]
+\end{definition}
+
+\begin{remark}
+\label{rem:cond-indep}
+If one equips $(X_C,X_{\bar C})$ with a prior distribution and defines $Y:=f(X_C,X_{\bar C})$, then \cref{def:fiber-ind} implies the conditional-independence statement
+$
+V_C \perp X_{\bar C}\mid (X_C,Y)
+$
+in the usual probabilistic sense. Conversely, in many common measure-theoretic settings, conditional independence for all priors implies a version of \cref{def:fiber-ind}.
+For a categorical treatment of conditional independence and related factorization properties for Markov kernels, see \cite{Fritz2020}.
+\end{remark}
+
+\begin{remark}
+\label{rem:zac-vs-fiber-ind}
+The set-based notion \cref{def:zac} and the distributional notion \cref{def:fiber-ind} are logically distinct.
+Informally, \cref{def:zac} forbids the view from ruling out any $x_{\bar C}$ within a fixed fiber (a support-level constraint), whereas \cref{def:fiber-ind} forbids the view distribution from varying \emph{within} a fiber (a law-level constraint). Without additional assumptions on how the transcript randomness is modeled, neither notion implies the other.
+\end{remark}
+
+\begin{definition}[Factorization through $(X_C,Y)$]
+\label{def:factorization}
+Let $t : X_C\times X_{\bar C} \rightsquigarrow V_C$ denote the channel $(x_C,x_{\bar C})\mapsto \mathsf{Law}(V_C\mid x_C,x_{\bar C})$.
+The view \emph{factors through} $(X_C,Y)$ if there exists a channel $g : X_C\times Y \rightsquigarrow V_C$ such that
+\[
+t \;=\; g \circ \langle \pi_C, f\rangle,
+\]
+where $\langle \pi_C,f\rangle : X_C\times X_{\bar C}\to X_C\times Y$ is the map $(x_C,x_{\bar C})\mapsto (x_C,f(x_C,x_{\bar C}))$.
+\end{definition}
+
+\begin{proposition}
+\label{prop:fiber-ind-iff-factor}
+In a setting where channels are determined by their pointwise conditional laws, \cref{def:fiber-ind} holds if and only if the factorization of \cref{def:factorization} holds.
+\end{proposition}
+
+\begin{proof}
+If $t=g\circ\langle \pi_C,f\rangle$, then $t(x_C,x_{\bar C})$ depends on $x_{\bar C}$ only through $y=f(x_C,x_{\bar C})$, which is precisely fiber-indistinguishability. Conversely, if $t(x_C,\cdot)$ is constant on each fiber of $f(x_C,\cdot)$, then define $g(x_C,y)$ to be that common value; well-definedness is exactly the constancy on fibers.
+\end{proof}
+
+\section{Categorical expression in a Markov category}
+\label{sec:categorical}
+
+The factorization property in \cref{def:factorization} is naturally expressed in a category whose morphisms are stochastic maps. One convenient formalism is that of \emph{Markov categories} \cite[Section~2]{Fritz2020}.
+
+\begin{remark}
+\label{rem:markov-category-brief}
+In a Markov category, objects play the role of measurable spaces (or finite sets), and morphisms $A\rightsquigarrow B$ are channels (Markov kernels) from $A$ to $B$. Deterministic maps embed as special channels. Products model joint systems.
+\end{remark}
+
+\subsection{The commuting diagram}
+\label{sec:commuting-diagram}
+
+Let $t : X_C\times X_{\bar C} \rightsquigarrow V_C$ be the view channel, and let $f : X_C\times X_{\bar C}\to Y$ be deterministic. The factorization $t=g\circ\langle \pi_C,f\rangle$ is the claim that the following diagram commutes:
+
+\begin{center}
+\begin{tikzcd}[row sep=large, column sep=large]
+X_C\times X_{\bar C} \arrow[r, "{\langle \pi_C,f\rangle}"] \arrow[dr, "t"'] & X_C\times Y \arrow[d, "g"] \\
+& V_C
+\end{tikzcd}
+\end{center}
+
+\begin{remark}
+\label{rem:categorical-reading}
+This diagram says: once $(x_C,y)$ is fixed, the distribution of the corrupted view is fixed as well; hence the view carries no further dependence on $x_{\bar C}$ beyond the value of $y$.
+\end{remark}
+
+\subsection{A deterministic ``partition refinement'' view via kernel pairs}
+\label{sec:kernel-pairs}
+
+In a purely deterministic setting, one can express ``no additional constraints'' as ``the view does not refine the partition induced by $(x_C,y)$.'' In regular categories, this is captured by kernel pairs.
+
+\begin{definition}[Kernel pair, informal]
+\label{def:kernel-pair-informal}
+Given a morphism $h:A\to B$, its kernel pair is an equivalence relation $\sim_h$ on $A$ defined by $a\sim_h a'$ iff $h(a)=h(a')$. If $h$ is replaced by $(h,k):A\to B\times C$, the induced equivalence can only become finer (distinguish more points).
+\end{definition}
+
+In our setting, consider
+\[
+h := \langle \pi_C,f\rangle : X_C\times X_{\bar C}\to X_C\times Y,
+\]
+One concrete deterministic extraction from a channel $t$ is its \emph{support-valued} observation: define a deterministic map
+\[
+s : X_C\times X_{\bar C} \to \mathcal{P}(V_C)
+\]
+by sending each input $(x_C,x_{\bar C})$ to the support set of the induced law on $V_C$. Concretely,
+\[
+s(x_C,x_{\bar C}) \;:=\; \mathrm{Supp}(t(x_C,x_{\bar C})) \;=\; \{\,v\in V_C \mid \Pr[V_C=v\mid x_C,x_{\bar C}]>0\,\}.
+\]
+Treating $s$ as the observation, ``zero additional constraints'' corresponds to requiring that observing \emph{which} view-values are possible does not refine the equivalence relation induced by $h$, i.e.\ that the induced indistinguishability relation is unchanged:
+\[
+\sim_{h} \;=\; \sim_{(h,s)}.
+\]
+When stated in this form, privacy becomes a claim about equality of two induced ``indistinguishability relations'' on the space of global inputs.
+
+\begin{openquestion}
+\label{oq:kernel-pair-stochastic}
+For genuinely stochastic views $t$, there are several inequivalent ways to extract a deterministic ``indistinguishability relation'' (e.g.\ equality of laws, equality of supports, or indistinguishability up to divergence). It remains to be shown which choice yields the most robust categorical analogue of \cref{def:zac} while remaining stable under natural protocol compositions.
+\end{openquestion}
+
+\section{Example: dot product and ``fiber size''}
+\label{sec:dot-product}
+
+Consider $f(a,b)=\langle a,b\rangle$ over a field (or ring) where dot products are defined. Fixing $a$ and $y$ typically leaves many possible $b$ values, i.e.\ $S_0(a,y)$ is large. However, this does not by itself imply privacy: a protocol may still leak additional information about $b$ in its transcript, which would manifest as either:
+\begin{itemize}
+  \item strict shrinking $S_v(a,y,v)\subsetneq S_0(a,y)$ (additional impossibility constraints), or
+  \item a view distribution that varies with $b$ within the same fiber (violating \cref{def:fiber-ind}).
+\end{itemize}
+The categorical factorization of \cref{sec:categorical} provides a succinct ``no extra information'' criterion: the entire corrupted view factors through $(a,y)$.
+
+\section{Relationship to simulation-based privacy (non-primitive)}
+\label{sec:simulation-remark}
+
+Although this note does not take simulation as primitive, it is useful to record the following: in many standard models, a simulation-based definition can be seen as a \emph{method} for establishing a factorization statement like \cref{def:factorization} (or an indistinguishability relaxation thereof). Conversely, factorization/conditional-independence can be treated as a semantic privacy requirement in its own right, independent of how it is proved.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+
