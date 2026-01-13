@@ -1,0 +1,339 @@
+\documentclass[11pt,a4paper]{article}
+
+% Encoding / fonts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Essential packages (per repository guidelines)
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Convenience
+\usepackage{mathtools}
+\usepackage{enumitem}
+
+% Theorem environments (per repository guidelines)
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Open question environment (per repository guidelines)
+\newenvironment{openquestion}{\par\textbf{Open Question.}\itshape}{\par}
+
+% Notation
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\Parties}{P}
+\newcommand{\Pow}{\mathcal{P}}
+\newcommand{\supp}{\mathrm{supp}}
+\newcommand{\negl}{\mathrm{negl}}
+\newcommand{\Prb}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\TV}{\mathrm{TV}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\I}{\mathrm{I}}
+\newcommand{\View}{\mathrm{View}}
+\newcommand{\Leak}{\ell}
+\newcommand{\Enc}{\mathrm{Enc}}
+\newcommand{\Rec}{\mathrm{Rec}}
+\newcommand{\post}{\pi}
+\newcommand{\Tau}{\mathcal{T}}
+
+\title{A Bayesian Semantics for MPC: Priors, Views, and Posterior Privacy}
+\author{AI Notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note develops a fully Bayesian (information-theoretic) semantics for privacy in multiparty computation (MPC). The starting point is a probabilistic channel from global protocol states (inputs plus ancilla) to adversarial transcripts, parameterized by an adversary strategy. Given a prior on global states, the channel induces a posterior. Privacy is then stated as a conditional-independence requirement: after conditioning on the intended leakage/output, the transcript carries no additional information about the designated secret component. The framework is related back to monadic ``shared computation'' interfaces and to the support-based meet-semilattice picture by passing from posteriors to supports. Two examples are analyzed in the common language: Shamir secret sharing and the DSDP (Distributed and Secure Dot-Product) protocol.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+The earlier note on knowledge sets (solution sets) treats privacy as a support-level property: the adversary's observation leaves multiple global states consistent with the transcript. This is valuable, but it does not model \emph{belief update}: even if many states remain possible, the adversary may assign them very different posterior weights. This note formalizes privacy directly in Bayesian terms.
+
+The central perspective is:
+\begin{quote}
+an MPC protocol (together with an adversary strategy) induces a probabilistic channel from global states to transcripts; a prior over global states yields a posterior; privacy is a statement about what the posterior may depend on.
+\end{quote}
+
+The key technical decision in a Bayesian model is to separate:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Functionality-level leakage.} What the model \emph{allows} the adversary to learn (e.g., a final opened output or other explicit leakage).
+  \item \textbf{Protocol-level leakage.} What the transcript in fact reveals beyond the allowed leakage, once the protocol and adversary strategy are fixed.
+\end{itemize}
+The privacy definition in \cref{sec:bayes-privacy} is designed so that if the protocol is ``ideal'' (leaks only the intended output), then posterior beliefs about secrets are the same whether one conditions on the transcript or only on the allowed leakage.
+
+\section{Preliminaries: Bayesian channels and posteriors}
+\label{sec:bayes-prelim}
+
+\subsection{Global states and secret components}
+A \emph{global state space} \(\Sigma\) collects everything that is not publicly fixed:
+private inputs, randomness (``ancilla''), and any other hidden protocol state.
+Let \(\Theta\) be the space of a \emph{designated secret component} (e.g.\ a secret value, or an honest party's input). A measurable map
+\[
+\pi_\Theta : \Sigma \to \Theta
+\]
+extracts the target secret component from the global state.
+
+\subsection{Adversary strategies and transcript channels}
+Let \(\Tau\) be a transcript space for the adversary (messages received, local corrupt-party states, and any explicit leakage included in the transcript).
+An \emph{adversary strategy} is an element \(\mathcal{A}\) of a set \(\mathsf{Strat}\). The point is that in malicious settings the adversary may choose inputs and actions adaptively based on earlier transcript fragments; this dependence is absorbed into \(\mathcal{A}\).
+
+\begin{definition}[View channel]
+\label{def:view-channel}
+Fix an adversary strategy \(\mathcal{A}\in\mathsf{Strat}\).
+A protocol induces a conditional distribution (a channel)
+\[
+Q_{\mathcal{A}}(\tau \mid \sigma) \quad \text{for } \sigma\in\Sigma,\ \tau\in\Tau,
+\]
+interpreted as the probability that the adversary observes transcript \(\tau\) when the global state is \(\sigma\) and the adversary follows \(\mathcal{A}\).
+\end{definition}
+
+\begin{remark}
+In purely information-theoretic models, the channel \(Q_{\mathcal{A}}\) is a genuine conditional probability kernel. In computational cryptography one usually replaces equality of channels by indistinguishability for efficient adversaries; this note remains Bayesian/information-theoretic and treats computational assumptions only as remarks.
+\end{remark}
+
+\subsection{Priors and Bayes rule}
+Fix a prior distribution \(\post\) on \(\Sigma\).
+For each strategy \(\mathcal{A}\), the joint distribution on \((\Sigma,\Tau)\) is
+\[
+\Prb_{\post,\mathcal{A}}[\sigma,\tau] := \post(\sigma)\,Q_{\mathcal{A}}(\tau\mid\sigma).
+\]
+The marginal likelihood of a transcript \(\tau\) is
+\[
+\Prb_{\post,\mathcal{A}}[\tau] := \sum_{\sigma\in\Sigma} \post(\sigma)\,Q_{\mathcal{A}}(\tau\mid\sigma)
+\]
+(in finite spaces; otherwise interpret as an integral).
+When \(\Prb_{\post,\mathcal{A}}[\tau]>0\), the posterior on \(\Sigma\) is
+\begin{equation}
+\label{eq:posterior-sigma}
+\post_{\mathcal{A}}(\sigma\mid\tau)
+:=
+\Prb_{\post,\mathcal{A}}[\sigma\mid\tau]
+=
+\frac{\post(\sigma)\,Q_{\mathcal{A}}(\tau\mid\sigma)}{\sum_{\sigma'} \post(\sigma')\,Q_{\mathcal{A}}(\tau\mid\sigma')}.
+\end{equation}
+The induced posterior on the target secret \(\theta=\pi_\Theta(\sigma)\) is the pushforward
+\[
+\Prb_{\post,\mathcal{A}}[\theta\mid\tau]
+=
+\sum_{\sigma:\,\pi_\Theta(\sigma)=\theta}
+\post_{\mathcal{A}}(\sigma\mid\tau).
+\]
+
+\section{Bayesian privacy relative to intended leakage}
+\label{sec:bayes-privacy}
+
+\subsection{Intended leakage}
+Let \(\Leak : \Sigma \to Z\) be an \emph{intended leakage} map, where \(Z\) is a leakage/output space.
+The simplest case is \(Z\) being the final opened output of the protocol, but \(\Leak\) may include any information the functionality explicitly allows the adversary to learn.
+
+The leakage variable is \(Z=\Leak(\sigma)\). Under a prior \(\post\), one can form the leakage-conditioned posterior \(\Prb[\theta\mid Z=z]\) in the usual way.
+
+\subsection{A conditional-independence formulation}
+Intuitively, a protocol is private (relative to \(\Leak\)) if the transcript does not refine beliefs about \(\theta\) beyond what \(\Leak\) already reveals.
+
+\begin{definition}[Posterior privacy (semantic form)]
+\label{def:posterior-privacy}
+Fix a set of strategies \(\mathsf{Strat}_t\subseteq \mathsf{Strat}\) (e.g.\ strategies controlling at most \(t\) parties). A protocol is \emph{Bayes-private for \(\theta\) relative to leakage \(\Leak\)} if for every \(\mathcal{A}\in\mathsf{Strat}_t\) and every transcript \(\tau\) with positive probability,
+\[
+\Prb_{\post,\mathcal{A}}[\theta \mid \tau] = \Prb_{\post,\mathcal{A}}[\theta \mid \Leak(\sigma)] \quad \text{(a.s. in } \tau\text{)}.
+\]
+Equivalently, \(\theta\) and \(\tau\) are conditionally independent given \(\Leak(\sigma)\):
+\[
+\theta \;\perp\!\!\!\perp\; \tau \;\mid\; \Leak(\sigma).
+\]
+\end{definition}
+
+\begin{remark}[Quantitative relaxations]
+One can weaken \cref{def:posterior-privacy} by bounding a divergence between the two posteriors, e.g.\ \(\TV\)-distance or \(\KL\)-divergence, or by bounding mutual information \(\I(\theta;\tau\mid \Leak)\). Such relaxations correspond to ``almost privacy'' and are the Bayesian analogue of computational indistinguishability bounds.
+\end{remark}
+
+\subsection{Relation to support-based knowledge and meet-semilattices}
+Define the support-level knowledge set for a transcript \(\tau\) (under a strategy \(\mathcal{A}\)) as
+\[
+K_{\mathcal{A}}(\tau) := \{\sigma\in\Sigma : Q_{\mathcal{A}}(\tau\mid\sigma)>0\}.
+\]
+Then the posterior \(\post_{\mathcal{A}}(\cdot\mid\tau)\) has support contained in \(K_{\mathcal{A}}(\tau)\). The earlier meet-semilattice semantics corresponds to tracking how \(K_{\mathcal{A}}(\tau)\) refines via intersection as the transcript grows; the Bayesian semantics refines this by tracking the full conditional distribution, not just its support.
+
+\section{Shared computation and ``monadic steps'' in a Bayesian model}
+\label{sec:bayes-monad}
+
+This section explains how the Bayesian objects above relate to monadic descriptions of shared computation.
+Operationally, an MPC step consumes shared inputs and produces shared outputs together with a transcript fragment. A convenient abstraction is to view a single step as a stochastic map from global states to (output, transcript) pairs.
+
+\begin{definition}[One-step operational semantics (informal)]
+\label{def:step}
+Fix an adversary strategy \(\mathcal{A}\). A single protocol step computing \(y=f(x)\) can be viewed as sampling
+\[
+(y,\tau) \sim \mathsf{Step}_{\mathcal{A}}(\,\cdot\mid \sigma),
+\]
+where \(\sigma\in\Sigma\) includes the current shared state and ancilla. The step is intended to preserve a representation invariant: although \(y\) is a mathematical function value, the protocol returns it in shared form and reveals only an allowed leakage function of \(\sigma\).
+\end{definition}
+
+\begin{remark}
+From this perspective, ``\(x\to M y\)'' is an operational interface statement: intermediate values live in a shared type \(M(\cdot)\), and the adversary only interacts with the system through the induced view channel \(Q_{\mathcal{A}}\). The Bayesian semantics is not an additional effect but a semantics obtained by composing: operational step \(\Rightarrow\) transcript channel \(\Rightarrow\) posterior update.
+\end{remark}
+
+\section{Example I: Shamir secret sharing}
+\label{sec:bayes-shamir}
+
+\subsection{Model}
+Fix a finite field \(\F\). Fix \(n\) distinct nonzero evaluation points \(\alpha_1,\dots,\alpha_n\in\F^\times\).
+Let the secret be \(s\in\F\), and let ancilla be the random coefficients \(a=(a_1,\dots,a_t)\in\F^t\). The global state space is
+\[
+\Sigma_{\mathrm{Sh}} := \F \times \F^t,
+\qquad
+\sigma=(s,a).
+\]
+Define \(p_\sigma(x)=s+\sum_{j=1}^t a_j x^j\). The full share vector is
+\[
+\Enc(\sigma) := (p_\sigma(\alpha_1),\dots,p_\sigma(\alpha_n))\in\F^{\Parties}.
+\]
+
+Let an adversary corrupt a subset \(S\subseteq \Parties\). The transcript \(\tau\) is the observed share restriction \(\Enc(\sigma)\vert_S\in \F^S\). This yields a deterministic channel \(Q(\tau\mid\sigma)\in\{0,1\}\).
+
+\subsection{Bayesian privacy statement}
+Let the target secret component be \(\theta=s\) (so \(\Theta=\F\) and \(\pi_\Theta(s,a)=s\)).
+Let the intended leakage be empty: \(\Leak(\sigma)=\emptyset\).
+Assume a prior \(\post\) under which \(s\) is arbitrary and \(a\) is uniform over \(\F^t\), independent of \(s\). (The note only uses uniformity of \(a\).)
+
+\begin{theorem}[Shamir Bayes-privacy for \(|S|\le t\)]
+\label{thm:bayes-shamir}
+Fix \(S\subseteq\Parties\) with \(|S|\le t\). Under the prior described above, the posterior on \(s\) given the transcript \(\tau=\Enc(\sigma)\vert_S\) equals the prior on \(s\). Equivalently,
+\[
+s \;\perp\!\!\!\perp\; \tau.
+\]
+In particular, Shamir secret sharing is Bayes-private for \(s\) relative to empty leakage.
+\end{theorem}
+
+\begin{lemma}[A Vandermonde rank fact]
+\label{lem:vandermonde-rank}
+Let \(S\subseteq\Parties\) have size \(k\). Consider the \(k\times k\) matrix
+\[
+V_S := \bigl(\alpha_i^j\bigr)_{i\in S,\ j=1,\dots,k}.
+\]
+If the \(\alpha_i\) are distinct and nonzero, then \(V_S\) is invertible over \(\F\).
+\end{lemma}
+
+\begin{proof}
+Factor \(\alpha_i^j = \alpha_i\cdot \alpha_i^{j-1}\) to write
+\[
+V_S = \mathrm{diag}(\alpha_i)_{i\in S}\cdot W_S,
+\quad
+W_S := \bigl(\alpha_i^{j-1}\bigr)_{i\in S,\ j=1,\dots,k}.
+\]
+The diagonal matrix is invertible because each \(\alpha_i\neq 0\). The matrix \(W_S\) is a (square) Vandermonde matrix with determinant
+\(\det(W_S)=\prod_{i<j}(\alpha_j-\alpha_i)\), which is nonzero because the \(\alpha_i\) are distinct. Hence \(\det(V_S)\neq 0\) and \(V_S\) is invertible.
+\end{proof}
+
+\begin{proof}
+Fix \(S\) and define the linear map \(L_S:\F^t\to\F^S\) by
+\[
+L_S(a) := \bigl(\sum_{j=1}^t a_j \alpha_i^j\bigr)_{i\in S}.
+\]
+Then the transcript is
+\[
+\tau = \Enc(s,a)\vert_S = s\cdot \mathbf{1} + L_S(a),
+\]
+where \(\mathbf{1}\in\F^S\) is the all-ones vector.
+Let \(k=|S|\). Consider the restriction of \(L_S\) to the first \(k\) coefficients \((a_1,\dots,a_k)\), setting the remaining coefficients to \(0\). The resulting linear map \(\F^k\to \F^S\) is represented (in the standard bases) by the matrix \(V_S\) of \cref{lem:vandermonde-rank}, and is therefore bijective. Hence \(L_S\) is surjective, so \(\mathrm{im}(L_S)=\F^S\).
+
+Since \(a\) is uniform and \(L_S\) is linear, \(L_S(a)\) is uniform over \(\mathrm{im}(L_S)=\F^S\). Therefore \(\tau=s\cdot\mathbf{1}+L_S(a)\) is uniform on \(\F^S\) and does not depend on \(s\). This implies the likelihood \(Q(\tau\mid s)\) is constant in \(s\), and Bayes' rule yields \(\Prb[s\mid \tau]=\Prb[s]\).
+\end{proof}
+
+\begin{remark}
+Theorem \cref{thm:bayes-shamir} explicitly shows where ancilla matters in Bayesian terms: the uniform randomness of \(a\) makes the likelihood \(Q(\tau\mid s)\) constant in \(s\), preventing posterior concentration.
+\end{remark}
+
+\section{Example II: DSDP (Distributed and Secure Dot-Product)}
+\label{sec:bayes-dsdp}
+
+\subsection{Functionality and priors}
+Let \(u=(u_1,u_2,u_3)\in\F^3\) be Alice's chosen coefficient vector, and let \(v=(v_1,v_2,v_3)\in\F^3\) be the vector of private inputs with \(v_1\) known to Alice, \(v_2\) to Bob, and \(v_3\) to Charlie. The intended output is
+\[
+s := u\cdot v = u_1 v_1 + u_2 v_2 + u_3 v_3.
+\]
+In a Bayesian model, one must specify a prior on \((v_2,v_3)\) (and on any ancilla such as masks). A natural reference prior is that \(v_2,v_3\) are independent uniform on \(\F\), independent of Alice's local randomness.
+
+\subsection{Posterior induced by the \emph{functionality} alone}
+Suppose the only information revealed to Alice is \(s\) (and she knows \(u\) and \(v_1\)). Then the constraint on \((v_2,v_3)\) is
+\[
+u_2 v_2 + u_3 v_3 = s - u_1 v_1.
+\]
+Let \(\theta=(v_2,v_3)\). The posterior \(\Prb[\theta\mid s]\) depends on the prior and on the coefficients \(u_2,u_3\).
+
+\begin{proposition}[Uniform prior yields uniform posterior on the affine fiber]
+\label{prop:dsdp-bayes-fiber}
+Assume \(v_2,v_3\) are independent uniform on \(\F\), and suppose \((u_2,u_3)\neq (0,0)\). Then conditioning on \(s\) makes \((v_2,v_3)\) uniformly distributed over the affine line
+\[
+\{(v_2,v_3)\in\F^2 : u_2 v_2 + u_3 v_3 = s-u_1 v_1\}.
+\]
+In particular, if \(u_2,u_3\neq 0\), neither \(v_2\) nor \(v_3\) is determined by \(s\).
+\end{proposition}
+
+\begin{proof}
+Under the uniform prior, \((v_2,v_3)\) is uniform on \(\F^2\). The map \(\phi(v_2,v_3)=u_2 v_2 + u_3 v_3\) is a nontrivial linear functional, hence each fiber \(\phi^{-1}(c)\) has exactly \(|\F|\) points and all fibers have equal cardinality. Therefore conditioning on the event \(\phi(v_2,v_3)=c\) yields the uniform distribution on that fiber.
+\end{proof}
+
+\begin{remark}[Chosen-coefficient strategies and posterior concentration]
+If Alice may choose \(u\) adaptively across repeated queries, then even the ideal dot-product functionality allows recovery of \(v\) (e.g.\ query basis vectors). This is a \emph{functionality-level} phenomenon: the posterior can concentrate to a point because the leakage \(\Leak(\sigma)=s\) across multiple queries becomes identifying.
+\end{remark}
+
+\subsection{Protocol-level transcript and ancilla}
+The DSDP protocol uses random masks \(r_2,r_3\) and homomorphic encryption so that intermediate ciphertexts do not reveal additional information to Alice beyond what is implied by \(s\).
+
+\subsubsection{An idealized Bayesian transcript model}
+In a fully Bayesian model, the protocol transcript must be a genuine probabilistic channel. Public-key encryption, however, is typically only computationally hiding. To validate the Bayesian definitions in a clean setting, it is useful to first state an \emph{idealized} model in which ciphertexts are treated as perfectly secret: informally, the transcript contains (i) the intended leakage \(s\) and (ii) additional randomness that is independent of the honest parties' secrets given \(s\).
+
+\begin{definition}[Idealized DSDP view channel for corrupted Alice]
+\label{def:dsdp-ideal-channel}
+Fix \(u\) and Alice's known \(v_1\). Let \(\theta=(v_2,v_3)\) be the target secret component. Let the intended leakage be \(\Leak(\sigma)=s=u\cdot v\).
+An \emph{idealized} DSDP transcript channel for corrupted Alice is any channel of the form
+\[
+Q(\tau\mid\sigma) = Q\bigl((s,\omega)\mid (u,v_1,\theta,a)\bigr),
+\]
+where \(\tau=(s,\omega)\), the variable \(\omega\) is auxiliary transcript randomness, and
+\[
+\omega \;\perp\!\!\!\perp\; \theta \;\mid\; s.
+\]
+\end{definition}
+
+\begin{proposition}[Bayes-privacy in the idealized model]
+\label{prop:dsdp-ideal-privacy}
+Under the channel model of \cref{def:dsdp-ideal-channel}, DSDP is Bayes-private for \(\theta=(v_2,v_3)\) relative to leakage \(\Leak(\sigma)=s\): for all transcripts \(\tau=(s,\omega)\) with positive probability,
+\[
+\Prb[\theta\mid \tau] = \Prb[\theta\mid s].
+\]
+\end{proposition}
+
+\begin{proof}
+By assumption, \(\omega\) and \(\theta\) are conditionally independent given \(s\). Conditioning on \((s,\omega)\) therefore does not change the conditional distribution of \(\theta\) beyond conditioning on \(s\) alone, i.e.\ \(\Prb[\theta\mid s,\omega]=\Prb[\theta\mid s]\).
+\end{proof}
+
+\begin{openquestion}[From idealized Bayes-privacy to computational security]
+For the real DSDP protocol using public-key encryption, the natural statement is computational: the real transcript distribution should be indistinguishable (to efficient tests) from one generated from \(s\) alone. Translating that computational statement into an ``approximately Bayesian'' posterior guarantee requires choosing a quantitative notion (e.g.\ bounds on \(\TV\)-distance between posteriors under bounded priors, or a decision-theoretic notion of semantic security). This note does not attempt that translation.
+\end{openquestion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The Bayesian semantics isolates what must be specified to make ``privacy'' a mathematically meaningful statement: a prior, a transcript channel, and an intended leakage function. Shamir secret sharing validates the approach with a fully information-theoretic proof that the transcript is independent of the secret under natural priors. DSDP validates the approach at the functionality level by exhibiting the posterior on honest parties' inputs conditioned on the dot-product output; modeling the full transcript under public-key encryption requires computational assumptions and is therefore left as an explicit open question in a fully Bayesian setting.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+
