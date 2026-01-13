@@ -205,16 +205,18 @@ Given a morphism $h:A\to B$, its kernel pair is an equivalence relation $\sim_h$
 In our setting, consider
 \[
 h := \langle \pi_C,f\rangle : X_C\times X_{\bar C}\to X_C\times Y,
-\qquad
-k := t : X_C\times X_{\bar C}\rightsquigarrow V_C.
 \]
-One concrete deterministic extraction from a channel $t$ is its \emph{support-valued} observation: for each input $(x_C,x_{\bar C})$, consider the subset
+One concrete deterministic extraction from a channel $t$ is its \emph{support-valued} observation: define a deterministic map
 \[
-\mathrm{Supp}(t(x_C,x_{\bar C})) \;:=\; \{\,v\in V_C \mid \Pr[V_C=v\mid x_C,x_{\bar C}]>0\,\}.
+s : X_C\times X_{\bar C} \to \mathcal{P}(V_C)
 \]
-Treating $\mathrm{Supp}(t(\cdot))$ as the observation, ``zero additional constraints'' corresponds to requiring that observing \emph{which} view-values are possible does not refine the equivalence relation induced by $h$, i.e.\ that the induced indistinguishability relation is unchanged:
+by sending each input $(x_C,x_{\bar C})$ to the support set of the induced law on $V_C$. Concretely,
 \[
-\sim_{h} \;=\; \sim_{(h,k)}.
+s(x_C,x_{\bar C}) \;:=\; \mathrm{Supp}(t(x_C,x_{\bar C})) \;=\; \{\,v\in V_C \mid \Pr[V_C=v\mid x_C,x_{\bar C}]>0\,\}.
+\]
+Treating $s$ as the observation, ``zero additional constraints'' corresponds to requiring that observing \emph{which} view-values are possible does not refine the equivalence relation induced by $h$, i.e.\ that the induced indistinguishability relation is unchanged:
+\[
+\sim_{h} \;=\; \sim_{(h,s)}.
 \]
 When stated in this form, privacy becomes a claim about equality of two induced ``indistinguishability relations'' on the space of global inputs.
 

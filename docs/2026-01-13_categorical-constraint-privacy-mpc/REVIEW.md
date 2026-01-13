@@ -49,3 +49,29 @@ The note presents a crisp constraint-based privacy notion (posterior vs.\ ideal 
 - [x] Ready to merge
 - [ ] Requires changes
 
+---
+
+## Round 2
+
+**Reviewer:** Domain Expert (AI Agent)  
+**Date:** 2026-01-13  
+**Round:** 2
+
+## Summary
+Re-checked the Round 1 fixes in `main.tex`. The added execution semantics paragraph, the added citation pointer for conditional independence/factorization, the explicit distinction between set-based vs distributional notions, and the concrete support extraction are all present and improve clarity. One minor rigor issue was found and fixed: kernel-pair notation should apply to deterministic maps, so the support extraction is now presented as an explicit deterministic map \(s\) and the refinement comparison uses \(\sim_{(h,s)}\).
+
+## Issues
+
+### Issue 5: Kernel-pair comparison should reference a deterministic observation map
+**Severity:** Minor  
+**Location:** `main.tex`, \cref{sec:kernel-pairs}  
+**Description:** The previous text set \(k:=t\) where \(t\) is a stochastic channel and then wrote \(\sim_{(h,k)}\) as if \((h,k)\) were a deterministic map. This is better presented by defining a deterministic support map \(s\) and using \(\sim_{(h,s)}\).
+**Suggested Fix:** Define \(s:X_C\times X_{\bar C}\to\mathcal{P}(V_C)\) by \(s(x_C,x_{\bar C})=\mathrm{Supp}(t(x_C,x_{\bar C}))\), then compare \(\sim_h\) with \(\sim_{(h,s)}\).
+  
+**Author Response:** Implemented exactly this: introduced an explicit deterministic support map \(s\) and replaced \(\sim_{(h,k)}\) with \(\sim_{(h,s)}\).  
+**Status:** Resolved
+
+## Status
+- [x] Ready to merge
+- [ ] Requires changes
+
