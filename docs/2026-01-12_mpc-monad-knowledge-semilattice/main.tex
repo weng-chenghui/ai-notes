@@ -67,6 +67,30 @@ The goal of this note is to provide a conservative formalism that captures the f
 
 The payoff is that both Shamir secret sharing and DSDP can be described in the same language: ``unauthorized'' observation corresponds to a non-singleton (often large) knowledge set for the target secret, whereas ``authorized'' observation corresponds to a singleton knowledge set.
 
+\subsection{A three-part privacy checklist}
+\label{sec:privacy-checklist}
+The framework of this note separates three conceptually distinct questions that are often conflated under the name ``privacy''.
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Identifiability relative to intended leakage.}
+  Fix a target secret component \(\theta=\pi(\sigma)\) and an \emph{intended leakage/output function} \(\ell(\sigma)\) (e.g., the opened output of a protocol).
+  Privacy for \(\theta\) is impossible if \(\theta\) is already determined by \(\ell(\sigma)\), i.e.\ if the solution set
+  \[
+    C_\ell(z) := \{\sigma\in\Sigma : \ell(\sigma)=z\}
+  \]
+  has \(|\pi(C_\ell(z))|=1\) for relevant leakage values \(z\).
+  In many protocols, ancilla variables are designed to cancel out of \(\ell(\sigma)\) (e.g., masks are removed at open), so identifiability at this level is controlled by the \emph{functionality} itself (see \cref{sec:dsdp}).
+
+  \item \textbf{No additional leakage via transcripts (protocol-level privacy).}
+  Even if \(\ell\) does not determine \(\theta\), a concrete protocol may leak more through intermediate messages and partial results.
+  In this note, such leakage is modeled by the adversary view map \(\View_S\) and, in the computational setting, by simulation-based security relative to \(\ell\) (\cref{def:leakage-security}).
+  Ancilla matters crucially here: it enlarges the global state space \(\Sigma\) and (when hidden) can make many underlying states consistent with the same transcript, as in Shamir's perfect privacy (\cref{prop:shamir-perfect-privacy}).
+
+  \item \textbf{Posterior concentration under adaptive strategies (Bayesian refinement).}
+  A support-based knowledge set records which global states remain possible after observing a transcript. A Bayesian semantics additionally assigns posterior weights, which may concentrate when adversary-chosen inputs influence the transcript distribution.
+  The remark on Bayesian refinement in \cref{sec:meet-semilattice} clarifies how intersection of constraint sets corresponds to conditioning in idealized cases.
+\end{enumerate}
+
 \section{Preliminaries}
 \label{sec:preliminaries}
 
