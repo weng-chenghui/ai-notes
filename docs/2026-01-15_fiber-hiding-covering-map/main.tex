@@ -197,6 +197,9 @@ Cover \(\gamma(I)\subset B\) by evenly covered neighborhoods. By compactness, fi
 
 A related uniqueness statement holds for lifting homotopies \(H:X\times I\to B\): informally, if one fixes a lift of \(H(\cdot,0)\), then the lift of the entire homotopy is forced (componentwise) by the covering-map structure.
 
+\paragraph{Protocol interpretation (dynamic viewpoint).}
+In a protocol-flavored reading, one may regard the parties' \emph{joint secret state} as a time-indexed point \(\tilde\gamma(t)=(u(t),v(t))\in T^2\), while Alice observes only its image \(\gamma(t)=p(\tilde\gamma(t))\in K\). Then \cref{prop:covering-uplp} says that, once the parties' initial secret \(\tilde\gamma(0)\in p^{-1}(\gamma(0))\) is fixed (equivalently, once the initial ``sheet'' is fixed), the entire lifted trajectory \(\tilde\gamma\) is determined uniquely by the observed base trajectory \(\gamma\). Without knowledge of the initial sheet, Alice can at best narrow down the evolution to the (finite) set of lifts consistent with \(\gamma\) and the unknown initial choice.
+
 \begin{remark}[Two possible ``unrollings'' in a \(2\)-sheeted cover]
 \label{rem:two-unrollings}
 For a \(2\)-sheeted cover \(p:E\to B\), observing only a base path \(\gamma\) does \emph{not} determine a unique lift in \(E\): one must also choose the initial point \(\tilde e_0\in p^{-1}(\gamma(0))\). Once \(\tilde e_0\) is fixed, the lift is unique by \cref{def:uplp,prop:covering-uplp}. Thus, in the \(T^2\to K\) picture, the basic ambiguity can be viewed as the discrete choice of ``sheet'' at time \(0\); after that choice, the evolution is determined.
@@ -325,10 +328,12 @@ For a concrete illustration, take \(n=5\). Then \(\mathbb{T}_5=\mathbb{Z}_{10}\t
 \medskip
 \noindent\textbf{Legend of symbols:}
 \begin{itemize}
-  \item \((U,V)\in\mathbb{T}_5\): the \emph{private input} (a point on the discrete torus).
+  \item \(U\in\mathbb{Z}_{10}\): Bob's \emph{private input} (the first coordinate of a point on the discrete torus \(\mathbb{T}_5\)).
+  \item \(V\in\mathbb{Z}_5\): Charlie's \emph{private input} (the second coordinate of a point on the discrete torus \(\mathbb{T}_5\)).
+  \item \((U,V)\in\mathbb{T}_5\): the \emph{joint private input} (a point on the discrete torus).
   \item \(T=U\bmod 5\): the \emph{residue class}, which is \textbf{revealed} to Alice via the first coordinate of \(K\).
   \item \(B\in\{0,1\}\): the \emph{sheet bit}, indicating which half of the torus the input lies in; this is \textbf{hidden} from Alice (under uniform \(V\)).
-  \item \(K=p_5(U,V)\in\mathbb{K}_5\): the \emph{observed output} (a point on the discrete Klein bottle); this is what Alice sees.
+  \item \(K=p_5(U,V)\in\mathbb{K}_5\): the \emph{observed output} (a point on the discrete Klein bottle), observed by Alice.
 \end{itemize}
 
 \begin{center}
