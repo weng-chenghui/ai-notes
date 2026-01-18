@@ -48,6 +48,33 @@ This note makes two points.
   \item ``Hiding'' is ultimately \emph{distributional}: one must analyze what remains uncertain about \((x,y)\) after observing \(s\), e.g. via conditional entropy. Fiber size alone is not a complete security argument.
 \end{itemize}
 
+\subsection{Standing notation: total space \(E\), base \(B\), and fibers}
+\label{sec:standing-notation}
+
+To keep the topology language explicit (and to avoid treating it as ``just modular arithmetic''), the following notation is used throughout.
+
+\begin{definition}[Fiber of a map]
+\label{def:fiber}
+Let \(p:E\to B\) be a map and let \(b\in B\). The \emph{fiber over \(b\)} is the subset
+\[
+E_b := p^{-1}(b)=\{e\in E : p(e)=b\}.
+\]
+\end{definition}
+
+\begin{remark}[Bundle / fibration viewpoint]
+\label{rem:bundle-fibration-viewpoint}
+In the language of fiber bundles, one thinks of \(p:E\to B\) as a ``projection'' from a \emph{total space} \(E\) to a \emph{base space} \(B\), with typical fiber \(F\), meaning that locally \(p^{-1}(U)\cong U\times F\) over suitable open sets \(U\subseteq B\). In the language of homotopy theory, a \emph{fibration} is a map satisfying the homotopy lifting property (\cref{def:hlp}).
+\end{remark}
+
+\begin{remark}[Specialization to the main example \(T^2\to K\)]
+\label{rem:specialization-torus-klein}
+The central topological example of this note is the \(2\)-sheeted covering map
+\[
+p:T^2\longrightarrow K,
+\]
+constructed in \cref{sec:explicit-map}. Here \(E=T^2\) and \(B=K\). The fibers are finite: for each \(b\in K\), the fiber \(E_b=p^{-1}(b)\) consists of exactly two points (equivalently, one \(\mathbb{Z}_2\)-orbit under the involution \(\tau\) of \cref{sec:explicit-map}).
+\end{remark}
+
 \section{A reference linear example}
 \label{sec:linear}
 
@@ -102,6 +129,11 @@ Write the torus as a quotient
 T^2 := \bigl(\mathbb{R}/\mathbb{Z}\bigr)\times\bigl(\mathbb{R}/\mathbb{Z}\bigr),
 \]
 so a point of \(T^2\) is represented by \((u,v)\in [0,1)\times[0,1)\) with arithmetic performed modulo \(1\) in each coordinate.
+
+\begin{remark}[Quotients vs.\ coverings (to avoid a ``mod arithmetic'' misreading)]
+\label{rem:quotient-vs-covering}
+The notation ``\(\bmod 1\)'' indicates that \(T^2\) is a \emph{quotient} of \(\mathbb{R}^2\) by the lattice \(\mathbb{Z}^2\). However, a \emph{covering map} is not synonymous with ``taking a quotient'' or ``reducing modulo something'': it is a \emph{local} condition (\cref{def:covering-map}) asserting that the map is locally a disjoint union of homeomorphisms. In the present example, the covering \(p:T^2\to K\) arises from a \emph{free} \(\mathbb{Z}_2\)-action on \(T^2\) (the involution \(\tau\) in \cref{sec:explicit-map}); the modular arithmetic is merely a convenient coordinate system for writing this action and the associated quotient map.
+\end{remark}
 
 Write the Klein bottle as the quotient of \([0,1)\times[0,1)\) under the edge identifications
 \[
@@ -240,6 +272,11 @@ p_n(u,v) :=
 \]
 where \(-v\) is computed in \(\mathbb{Z}_n\).
 \end{definition}
+
+\begin{remark}[What ``discrete'' means here]
+\label{rem:discrete-not-equal-covering}
+The map \(p_n\) is intended as a \emph{finite combinatorial analogue} of the continuous covering \(p:T^2\to K\): it is the quotient of the finite set \(\mathbb{T}_n\) by a free involution \((u,v)\mapsto(u+n,-v)\). The appearance of subtraction and negation in \(\mathbb{Z}_n\) should not be read as the claim that the topological notion of a covering map is ``the same as'' modular arithmetic. Rather, modular arithmetic is the algebraic mechanism for writing the relevant \(\mathbb{Z}_2\)-symmetry and its orbits in a finite model.
+\end{remark}
 
 \begin{remark}[Reproducibility]
 \label{rem:reproducibility}
