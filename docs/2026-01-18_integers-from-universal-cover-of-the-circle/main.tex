@@ -1,0 +1,229 @@
+\documentclass[11pt,a4paper]{article}
+
+% Essential packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Open question environment
+\newenvironment{openquestion}{\par\textbf{Open Question.}\itshape}{\par}
+
+\title{Integers from the Universal Cover of the Circle}
+\author{AI Notes}
+\date{2026-01-18}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The map \(p:\mathbb{R}\to S^{1}\) given by \(p(t)=e^{2\pi i t}\) is the universal covering map of the circle. Its fibers are discrete and can be identified with \(\mathbb{Z}\) canonically \emph{relative to a chosen lift} (equivalently, each fiber is a \(\mathbb{Z}\)-torsor under deck transformations). This note explains the frequently used decomposition ``real number \(=\) integer sheet index \(+\) fractional turn'' and clarifies which parts are canonical and which depend on conventions. A short discussion explains how replacing the discrete fiber by other discrete objects can be modeled over \(S^{1}\) by specifying a discrete set \(F\) together with a bijection \(T:F\to F\) (an ``update per full turn''), and how ``changing the \(+\)'' should be interpreted as changing the gluing law rather than merely replacing an arithmetic symbol.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+There is a standard way to view the circle \(S^{1}\) as the quotient \(\mathbb{R}/\mathbb{Z}\): one identifies real numbers that differ by an integer, keeping only the ``fractional part.'' Equivalently, one can use the map
+\begin{equation}
+\label{eq:covering-map}
+p:\mathbb{R}\longrightarrow S^{1}\subset \mathbb{C},
+\qquad
+p(t)=e^{2\pi i t},
+\end{equation}
+which sends \(t\) to the point on the unit circle obtained by rotating by \(2\pi t\) radians (that is, \(t\) turns).
+
+The motivating intuition is that a dense continuum \(\mathbb{R}\) simultaneously encodes a ``continuous angle'' (a point of \(S^{1}\)) and a ``discrete sheet label'' (an integer). The purpose of this note is to state this precisely in the language of covering spaces / fiber bundles with discrete fiber, and to clarify the sense in which the integer component is not intrinsic unless additional choices are made.
+
+\section{Preliminaries: coverings as fiber bundles with discrete fiber}
+\label{sec:preliminaries}
+
+\begin{definition}[Covering map]
+\label{def:covering-map}
+A map \(p:E\to B\) between topological spaces is a \emph{covering map} if every \(b\in B\) has an open neighborhood \(U\subseteq B\) such that \(p^{-1}(U)\) is a disjoint union of open sets in \(E\), each of which is mapped homeomorphically onto \(U\) by \(p\).
+\end{definition}
+
+\begin{remark}
+\label{rem:covering-is-fiber-bundle}
+A covering map is a fiber bundle whose fiber is a discrete space. Concretely, the ``local product structure'' over \(U\) in \cref{def:covering-map} identifies \(p^{-1}(U)\) with \(U\times F\) for a discrete set \(F\) (depending on the component count), but the identification typically depends on the chosen trivialization.
+\end{remark}
+
+\begin{definition}[Universal covering space]
+\label{def:universal-cover}
+A covering map \(p:E\to B\) is called a \emph{universal cover} if \(E\) is simply connected.
+\end{definition}
+
+\begin{lemma}[\(\mathbb{R}\) is contractible]
+\label{lem:R-contractible}
+The space \(\mathbb{R}\) is contractible, hence simply connected.
+\end{lemma}
+
+\begin{proof}
+Define \(H:\mathbb{R}\times [0,1]\to \mathbb{R}\) by \(H(t,s)=(1-s)t\). Then \(H(\cdot,0)=\mathrm{id}_{\mathbb{R}}\) and \(H(\cdot,1)=0\) is constant, so \(H\) is a contraction of \(\mathbb{R}\) to a point.
+\end{proof}
+
+\section{The universal cover \(p:\mathbb{R}\to S^{1}\)}
+\label{sec:universal-cover}
+
+Fix \(S^{1}=\{z\in \mathbb{C}:\lvert z\rvert=1\}\). The map \(p\) from \cref{eq:covering-map} is a covering map. The key structural facts are summarized below.
+
+\begin{proposition}[\(p\) is a covering map]
+\label{prop:p-is-covering}
+The map \(p:\mathbb{R}\to S^{1}\), \(p(t)=e^{2\pi i t}\), is a covering map.
+\end{proposition}
+
+\begin{proof}
+Fix \(z_{0}\in S^{1}\). Choose an angle \(\theta_{0}\in \mathbb{R}\) such that \(z_{0}=e^{i\theta_{0}}\). Consider the open arc
+\[
+U:=\{e^{i\theta}:\ \theta\in (\theta_{0}-\pi,\theta_{0}+\pi)\}\subset S^{1}.
+\]
+The map \(\theta\mapsto e^{i\theta}\) restricts to a homeomorphism \((\theta_{0}-\pi,\theta_{0}+\pi)\to U\), with inverse given by a continuous branch of the argument on \(U\); denote this inverse by \(\mathrm{Arg}_{U}:U\to (\theta_{0}-\pi,\theta_{0}+\pi)\).
+
+For each \(k\in \mathbb{Z}\), set
+\[
+I_{k}:=\left(\frac{\theta_{0}-\pi}{2\pi}+k,\ \frac{\theta_{0}+\pi}{2\pi}+k\right)\subset \mathbb{R}.
+\]
+Then \(p^{-1}(U)=\bigsqcup_{k\in \mathbb{Z}} I_{k}\). Moreover, the restriction \(p|_{I_{k}}:I_{k}\to U\) is a homeomorphism with inverse \(U\to I_{k}\) given by
+\[
+z\longmapsto \frac{\mathrm{Arg}_{U}(z)}{2\pi}+k.
+\]
+Thus \(U\) is evenly covered. Since \(z_{0}\) was arbitrary, \cref{def:covering-map} holds.
+\end{proof}
+
+\begin{corollary}[\(p\) is the universal cover of \(S^1\)]
+\label{cor:universal-cover}
+The map \(p:\mathbb{R}\to S^{1}\) is a universal cover in the sense of \cref{def:universal-cover}.
+\end{corollary}
+
+\begin{proof}
+By \cref{prop:p-is-covering}, \(p\) is a covering map. By \cref{lem:R-contractible}, \(\mathbb{R}\) is simply connected. Hence \(p\) is a universal cover by \cref{def:universal-cover}.
+\end{proof}
+
+\begin{proposition}[Fibers are discrete and modeled on \(\mathbb{Z}\)]
+\label{prop:fibers}
+For each \(z\in S^{1}\), the fiber \(p^{-1}(z)\subset \mathbb{R}\) is a discrete subset of \(\mathbb{R}\). Moreover, for each choice of argument \(\theta\in \mathbb{R}\) with \(z=e^{i\theta}\), one has
+\begin{equation}
+\label{eq:fiber-formula}
+p^{-1}(z)=\left\{\frac{\theta}{2\pi}+k:\ k\in \mathbb{Z}\right\}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The equation \(e^{2\pi i t}=e^{i\theta}\) holds if and only if \(2\pi t=\theta+2\pi k\) for some \(k\in\mathbb{Z}\), which is equivalent to \(t=\theta/(2\pi)+k\). This yields \cref{eq:fiber-formula}. Since \(\mathbb{Z}\) is discrete in \(\mathbb{R}\), the fiber is discrete.
+\end{proof}
+
+\begin{remark}[Degrees and turns]
+\label{rem:degrees}
+If an angle is measured in degrees as \(\alpha\in \mathbb{R}\) with \(z=e^{2\pi i (\alpha/360)}\), then \cref{eq:fiber-formula} becomes
+\[
+p^{-1}(z)=\left\{\frac{\alpha}{360}+k:\ k\in\mathbb{Z}\right\}.
+\]
+The quantity \(\alpha/360\) is the ``number of turns.'' It may be rational or irrational; this plays no special role in the description of the fiber.
+\end{remark}
+
+\subsection{The set-theoretic decomposition \(t = \lfloor t\rfloor + \{t\}\)}
+\label{sec:floor-frac}
+
+Every real number admits the decomposition
+\begin{equation}
+\label{eq:floor-frac}
+t = n + x, \qquad n:=\lfloor t\rfloor \in \mathbb{Z},\ \ x:=t-\lfloor t\rfloor\in [0,1),
+\end{equation}
+where \(\lfloor t\rfloor\) denotes the floor function. Under \(p\), the component \(x\in [0,1)\) determines a point on the circle, namely \(p(x)=e^{2\pi i x}\), while \(n\) is the integer translate which records which lift of that point has been chosen.
+
+\begin{remark}[What is and is not canonical]
+\label{rem:noncanonical}
+The point \(p(t)\in S^{1}\) is canonical. The integer \(n\) in \cref{eq:floor-frac} depends on the chosen fundamental domain \([0,1)\subset \mathbb{R}\) and on the chosen basepoint \(1\in S^{1}\) with its preferred lift \(0\in \mathbb{R}\). If one instead used \([a,a+1)\) as fundamental domain, or chose a different lift of the basepoint, the integer labels would shift accordingly.
+\end{remark}
+
+\subsection{Quotients and deck transformations}
+\label{sec:quotient-deck}
+
+The map \(p\) is constant on cosets of \(\mathbb{Z}\subset \mathbb{R}\), because
+\[
+p(t+k)=e^{2\pi i(t+k)}=e^{2\pi i t}=p(t),\qquad k\in \mathbb{Z}.
+\]
+Thus \(p\) factors through the quotient \(\mathbb{R}/\mathbb{Z}\), and one obtains a homeomorphism \(\mathbb{R}/\mathbb{Z}\cong S^{1}\). The translations \(t\mapsto t+k\) are the \emph{deck transformations} of this covering, exhibiting a free and properly discontinuous \(\mathbb{Z}\)-action on \(\mathbb{R}\) whose orbit space is \(S^{1}\).
+
+\section{Interpretation: ``integers emerge from \(\mathbb{R}\)''}
+\label{sec:interpretation}
+
+The preceding discussion supports the following precise interpretation of the ``integer from continuum'' intuition.
+
+\begin{itemize}
+\item A real number \(t\) determines a point on the circle \(p(t)\), i.e.\ an ``angle'' modulo \(1\) turn.
+\item Choosing a \emph{lift} of that angle (a point in the fiber \(p^{-1}(p(t))\)) is equivalent to choosing an integer translate of a representative, as in \cref{eq:fiber-formula}.
+\item The set \(\mathbb{Z}\) appears as the stabilizer of the covering in the form of deck transformations and as the typical fiber (after fixing a trivialization).
+\end{itemize}
+
+\begin{remark}
+As a set, \(\mathbb{R}\) can be identified with \(\mathbb{Z}\times [0,1)\) via \(t\mapsto (\lfloor t\rfloor, \{t\})\). This identification is useful computationally, but it is not a homeomorphism for the product topology on \(\mathbb{Z}\times [0,1)\): the integer part changes discontinuously at integers. This is another way to see that a global continuous choice of ``sheet index'' does not exist over the circle.
+\end{remark}
+
+\section{Generalizations: changing the discrete fiber and the gluing law}
+\label{sec:generalizations}
+
+\subsection{Replacing the fiber by other discrete objects}
+\label{sec:discrete-fiber}
+
+One way to replace the fiber \(\mathbb{Z}\) by another discrete set \(F\) is to prescribe an ``update rule'' applied after one full turn around the circle. Concretely, let \(F\) be a discrete set and let \(T:F\to F\) be a bijection.
+
+\begin{proposition}[A discrete bundle over \(S^{1}\) from an update rule]
+\label{prop:mapping-torus-cover}
+Let \(F\) be a discrete space and \(T:F\to F\) a bijection. Define an equivalence relation on \(\mathbb{R}\times F\) by
+\begin{equation}
+\label{eq:gluing}
+(t+1,f)\sim (t,T(f)) \qquad (t\in \mathbb{R},\ f\in F),
+\end{equation}
+and let \(E:=(\mathbb{R}\times F)/\!\sim\). Then the map
+\[
+q:E\to S^{1},
+\qquad
+q([t,f])=e^{2\pi i t},
+\]
+is a covering map with discrete fiber. Informally, traversing one full turn in the base applies \(T\) to the fiber label.
+\end{proposition}
+
+\begin{proof}
+First, \(q\) is well-defined: if \((t+1,f)\sim (t,T(f))\), then \(e^{2\pi i (t+1)}=e^{2\pi i t}\), so the value of \(q\) is unchanged.
+
+Fix \(z_{0}\in S^{1}\) and let \(U\subset S^{1}\) be an evenly covered arc as in \cref{prop:p-is-covering}. Choose the corresponding interval \(J\subset \mathbb{R}\) with \(p|_{J}:J\to U\) a homeomorphism. Then the subset \(\pi(J\times F)\subset E\) (where \(\pi:\mathbb{R}\times F\to E\) is the quotient map) is open, and the restriction of \(\pi\) to \(J\times F\) is injective because \(J\) has length \(<1\) and the only identifications are of the form \cref{eq:gluing} shifting \(t\) by an integer.
+
+Hence \(\pi|_{J\times F}:J\times F\to \pi(J\times F)\) is a homeomorphism. Composing with \(p|_{J}:J\to U\), one obtains a trivialization \(\pi(J\times F)\cong U\times F\) under which \(q\) corresponds to the projection \(U\times F\to U\). Therefore \(U\) is evenly covered by \(q\), and \(q\) is a covering map.
+\end{proof}
+
+\begin{remark}[Parametric discrete data]
+\label{rem:parametric-discrete}
+If \(F\) is taken to be a discrete collection of ``states'' (for example, a countable set indexing distributions, wavefunctions, or symbolic objects), then \cref{prop:mapping-torus-cover} models the idea that transporting once around the circle applies a fixed update rule \(T:F\to F\). In this sense, the ``discrete part'' is updated by gluing after one full turn.
+\end{remark}
+
+\subsection{What could it mean to replace ``\(+\)''?}
+\label{sec:change-plus}
+
+In \cref{eq:fiber-formula}, the appearance of ``\(+k\)'' reflects that \(\mathbb{Z}\) acts on \(\mathbb{R}\) by translations, and the quotient by this action is \(S^{1}\). Replacing ``\(+\)'' by another operator is therefore best interpreted as \emph{changing the group action} and/or \emph{changing the gluing rule} used to build a bundle from local trivializations.
+
+\begin{openquestion}
+\label{oq:other-operators}
+For which classes of ``discrete objects'' \(F\) and which update rules \(T:F\to F\) does there exist a natural topological or geometric construction that realizes ``angle'' plus ``state update'' as a fiber bundle over \(S^{1}\) whose monodromy is \(T\)? The author has not attempted to formulate a single definitive framework encompassing the various possible interpretations (coverings with discrete fiber, associated bundles to principal bundles, mapping tori, or group extensions).
+\end{openquestion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The map \(p(t)=e^{2\pi i t}\) exhibits \(\mathbb{R}\) as the universal cover of \(S^{1}\) and provides a clean relationship between a continuous ``angle'' coordinate (a point of the circle) and an integer ``sheet label'' (a point in a discrete fiber). The integer component is canonical only after conventions are fixed (choice of basepoint lift and a fundamental domain). General discrete fibers are naturally governed by monodromy, and changing the apparent arithmetic in the decomposition is most fruitfully understood as changing the underlying action/gluing data.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
