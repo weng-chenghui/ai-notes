@@ -653,5 +653,67 @@ For the Klein bundle \(\pi_K:K\to S^1\) presented as the mapping torus of a refl
 For the Möbius bundle \(\pi_M:M\to S^1\) with fiber \(I=[0,1]\), the monodromy is the reflection \(t\mapsto 1-t\) of the interval. This is the ``twist'' that makes the bundle nontrivial, even though each fiber is homeomorphic to \(I\).
 \end{example}
 
+\section{Further examples of fiber ambiguity}
+\label{sec:appendix-examples}
+
+This appendix collects standard examples in which a publicly observed value \(b\in B\) has multiple compatible ``hidden'' preimages in a space \(E\) under a map \(p:E\to B\). The purpose is to emphasize that the phenomenon ``\(\#p^{-1}(b)\ge 2\)'' occurs broadly in topology (not only for \(T^2\to K\)), while reiterating that information-theoretic hiding depends on distributional assumptions (as analyzed in \cref{sec:info-theory,sec:biased-u}).
+
+\subsection{Finite-sheeted coverings as constant-size ambiguity}
+\label{sec:appendix-finite-coverings}
+
+Covering maps give the cleanest setting for constant-size ambiguity: when \(p:E\to B\) is a connected \(d\)-sheeted covering, every fiber \(p^{-1}(b)\) has exactly \(d\) points, and paths in \(B\) lift uniquely once an initial lift is chosen (\cref{prop:covering-uplp}).
+
+\begin{example}[\(n\)-fold covering of the circle]
+\label{ex:nfold-circle}
+Let \(p:S^1\to S^1\) be \(p(z)=z^n\) for an integer \(n\ge 2\). Then \(p\) is an \(n\)-sheeted covering map: each output \(w\in S^1\) has exactly \(n\) preimages, the \(n\)th roots of \(w\).
+\end{example}
+
+\begin{example}[Multiplication maps on the torus]
+\label{ex:nfold-torus}
+Identify \(T^2\cong (\mathbb{R}/\mathbb{Z})^2\). For \(n\ge 2\), the map
+\[
+p_n:T^2\to T^2,\qquad p_n([u],[v])=([nu],[v])
+\]
+is an \(n\)-sheeted covering map; similarly \(([u],[v])\mapsto([nu],[nv])\) is an \(n^2\)-sheeted covering.
+\end{example}
+
+\subsection{Quotients by finite group actions}
+\label{sec:appendix-finite-group-quotients}
+
+The map \(T^2\to K\) can be viewed abstractly as a quotient by a free \(\mathbb{Z}_2\)-action. This viewpoint generalizes uniformly: a free action of a finite group produces a finite-sheeted covering whose fibers are the corresponding orbits.
+
+\begin{definition}[Group action and free action]
+\label{def:free-action}
+Let \(G\) be a group and \(E\) a topological space. A (left) \emph{action} of \(G\) on \(E\) is a map \(G\times E\to E\), \((g,e)\mapsto g\cdot e\), such that \(1\cdot e=e\) and \((g_1g_2)\cdot e=g_1\cdot(g_2\cdot e)\) for all \(g_1,g_2\in G\) and \(e\in E\). The action is \emph{free} if \(g\cdot e=e\) implies \(g=1\).
+\end{definition}
+
+\begin{proposition}[Free finite actions give finite-sheeted coverings]
+\label{prop:finite-free-quotient-cover}
+Let \(G\) be a finite group acting freely on a Hausdorff topological space \(E\). Let \(B:=E/G\) be the orbit space with the quotient topology, and let \(p:E\to B\) be the quotient map \(e\mapsto [e]\). Then \(p\) is a \(|G|\)-sheeted covering map. In particular, each fiber is an orbit:
+\[
+p^{-1}([e])=\{g\cdot e:\ g\in G\},
+\qquad
+\#p^{-1}([e])=|G|.
+\]
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Fix \(e\in E\). Since the action is free and \(G\) is finite, the points \(\{g\cdot e:\ g\in G\}\) are distinct. Using Hausdorffness, choose pairwise disjoint neighborhoods \(U_g\) of \(g\cdot e\). Let \(U:=p(U_1)\subseteq B\), where \(U_1\) is the neighborhood of \(e\). By shrinking \(U_1\) if necessary, one may ensure that \(g\cdot U_1\subseteq U_g\) for each \(g\in G\). Then
+\[
+p^{-1}(U)=\bigsqcup_{g\in G} g\cdot U_1,
+\]
+and each restriction \(p|_{g\cdot U_1}:g\cdot U_1\to U\) is a homeomorphism. Thus \(U\) is evenly covered, proving that \(p\) is a covering map of degree \(|G|\).
+\end{proof}
+
+\begin{example}[Antipodal quotient \(S^n\to \mathbb{RP}^n\)]
+\label{ex:sphere-to-projective}
+Let \(G=\mathbb{Z}_2\) act on \(S^n\) by the antipodal map \(x\mapsto -x\). The action is free, and the quotient \(S^n/G\) is real projective space \(\mathbb{RP}^n\). The quotient map \(S^n\to \mathbb{RP}^n\) is therefore a 2-sheeted covering map.
+\end{example}
+
+\begin{example}[Revisiting \(T^2\to K\) as a \(\mathbb{Z}_2\)-quotient]
+\label{ex:torus-klein-as-quotient}
+In \cref{sec:explicit-map}, the involution \(\tau(u,v)=(u+\tfrac12,1-v)\) defines a free \(\mathbb{Z}_2\)-action on \(T^2\). The quotient \(T^2/\langle\tau\rangle\) is homeomorphic to the Klein bottle \(K\), and the quotient map is the 2-sheeted covering \(p:T^2\to K\) used throughout the note.
+\end{example}
+
 \end{document}
 
