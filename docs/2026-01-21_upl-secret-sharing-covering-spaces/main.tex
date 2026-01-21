@@ -1,0 +1,474 @@
+\documentclass[11pt,a4paper]{article}
+
+% Essential packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Open question environment
+\newenvironment{openquestion}{\par\textbf{Open Question.}\itshape}{\par}
+
+\title{Unique Path Lifting as a Sheet-Keyed Trajectory Scheme:\\
+What Is Correct, What Requires Hypotheses, and What Is Not Implied}
+\author{AI Notes}
+\date{2026-01-21}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Given a covering map \(p:E\to B\) with finite fiber \(p^{-1}(b_0)\) of size \(n\), a path \(\gamma\) in the base admits exactly one lift \(\tilde\gamma_e\) for each choice of initial point \(e\in p^{-1}(\gamma(0))\). This creates a discrete ambiguity indexed by the fiber, sometimes described informally as ``\(n\) equally valid candidate trajectories in \(E\) projecting to the same observed motion in \(B\).'' The present note records the precise topology statements behind that heuristic (existence/uniqueness of lifts, disjointness of distinct lifts, and the monodromy permutation on fibers for loops), and then states an information-theoretic toy model in which the success probability of guessing the initial sheet is exactly \(1/n\). The note also clarifies a common confusion: lifts of a fixed base path need not be related by deck transformations unless the covering is regular (normal), and no probabilistic statement follows without explicit distributional assumptions.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Let \(p:E\to B\) be a covering map and let \(\gamma:[0,1]\to B\) be a path with \(\gamma(0)=b_0\). In many informal discussions, one imagines \(E\) as \(n\) ``sheets'' above \(B\), so that a base path \(\gamma\) can be lifted to \(n\) candidate paths in \(E\), one on each sheet, all projecting to \(\gamma\). If an observer knows \(\gamma\) but does not know the initial sheet, then all \(n\) lifts appear compatible with the observation.
+
+When the base \(B\) is path-connected, the sheet count \(n\) is constant across the base: all fibers have the same cardinality. More generally, the sheet count is constant on each path component of \(B\). Accordingly, when speaking informally of ``\(n\) sheets,'' this note always means ``\(n\) sheets over the path component of \(b_0\).'' This is made precise in \cref{cor:fiber-cardinality-constant}.
+
+This heuristic is close to standard covering-space theory, but it is often stated imprecisely. The goals of this note are:
+\begin{itemize}
+  \item to state and prove the exact unique path lifting facts used by the heuristic;
+  \item to formalize the ``\(1/n\) guessing probability'' claim as a theorem in a toy probabilistic model;
+  \item to clarify when (and only when) distinct lifts of a fixed base path are related by deck transformations.
+\end{itemize}
+
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+\subsection{Covering maps and evenly covered neighborhoods}
+\label{sec:covering}
+
+\begin{definition}[Covering map]
+\label{def:covering-map}
+A map \(p:E\to B\) is a \emph{covering map} if it is surjective and for every \(b\in B\) there exists an open neighborhood \(U\subseteq B\) of \(b\) such that
+\[
+p^{-1}(U)=\bigsqcup_{\alpha\in A} U_\alpha
+\]
+as a disjoint union of open sets, and for each \(\alpha\) the restriction \(p|_{U_\alpha}:U_\alpha\to U\) is a homeomorphism. Such a neighborhood \(U\) is said to be \emph{evenly covered}.
+\end{definition}
+
+\begin{remark}
+\label{rem:discrete-fiber}
+For a covering map, each fiber \(p^{-1}(b)\) is a discrete subspace of \(E\). This discreteness is local: the fiber points can be separated using the distinct sheets \(U_\alpha\) over an evenly covered neighborhood \(U\).
+\end{remark}
+
+\subsection{Paths and lifts}
+\label{sec:paths}
+
+\begin{definition}[Path and lift]
+\label{def:path-lift}
+Let \(p:E\to B\) be a map. A \emph{path} in \(B\) is a continuous map \(\gamma:[0,1]\to B\). A \emph{lift} of \(\gamma\) is a continuous map \(\tilde\gamma:[0,1]\to E\) such that \(p\circ \tilde\gamma=\gamma\).
+\end{definition}
+
+\begin{definition}[Unique path lifting for a fixed initial point]
+\label{def:upl}
+Let \(p:E\to B\) be a map. One says that \(p\) has the \emph{unique path lifting property} if for every path \(\gamma:[0,1]\to B\) and every \(e_0\in E\) with \(p(e_0)=\gamma(0)\), there exists a unique lift \(\tilde\gamma\) of \(\gamma\) satisfying \(\tilde\gamma(0)=e_0\).
+\end{definition}
+
+\subsection{Constructing paths on the base space: operations and caveats}
+\label{sec:constructing-paths}
+
+The covering-space statements in later sections treat \(\gamma:[0,1]\to B\) as given. In applications, however, one often asks what kinds of ``operations'' or ``computations'' can be understood as producing such a path. The only mathematically intrinsic requirement is continuity; everything else is a matter of how one models the underlying data and how one interprets an algorithmic output as a continuous map into \(B\).
+
+\subsubsection{Intrinsic path operations (always valid in topology)}
+\label{sec:intrinsic-path-ops}
+
+\begin{definition}[Reparameterization]
+\label{def:reparameterization}
+Let \(\gamma:[0,1]\to B\) be a path. A \emph{reparameterization} of \(\gamma\) is a path of the form \(\gamma\circ \phi\), where \(\phi:[0,1]\to[0,1]\) is continuous with \(\phi(0)=0\) and \(\phi(1)=1\).
+\end{definition}
+
+\begin{remark}
+\label{rem:reparameterization}
+For many purposes, one further restricts to \(\phi\) that are continuous, nondecreasing, and surjective; such \(\phi\) change the ``time schedule'' without reversing direction in time. The present note allows arbitrary continuous endpoint-fixing \(\phi\), which also permits ``pauses'' (intervals on which \(\phi\) is constant). Since continuity is preserved under composition, \(\gamma\circ\phi\) is again a path.
+\end{remark}
+
+\begin{definition}[Concatenation and inverse]
+\label{def:concat-inverse}
+Let \(\gamma,\eta:[0,1]\to B\) be paths such that \(\gamma(1)=\eta(0)\). Their \emph{concatenation} \(\eta * \gamma:[0,1]\to B\) is defined by
+\[
+(\eta * \gamma)(t):=
+\begin{cases}
+\gamma(2t) & \text{if } 0\le t\le \tfrac12,\\
+\eta(2t-1) & \text{if } \tfrac12\le t\le 1.
+\end{cases}
+\]
+The \emph{inverse path} \(\gamma^{-1}:[0,1]\to B\) is defined by \(\gamma^{-1}(t):=\gamma(1-t)\).
+\end{definition}
+
+\begin{proposition}[Closure under basic operations]
+\label{prop:path-ops-closed}
+If \(\gamma,\eta\) are paths in \(B\) with \(\gamma(1)=\eta(0)\), then \(\eta*\gamma\) is a path. Moreover, if \(\gamma\) is a path, then \(\gamma^{-1}\) is a path, and every reparameterization \(\gamma\circ\phi\) (as in \cref{def:reparameterization}) is a path.
+\end{proposition}
+
+\begin{proof}
+Each construction is obtained by composing continuous maps and gluing continuous pieces along a common boundary point \(t=\tfrac12\) (for concatenation). Continuity of \(\eta*\gamma\) follows from the pasting lemma since the two defining formulas agree at \(t=\tfrac12\) by the matching-endpoint assumption \(\gamma(1)=\eta(0)\).
+\end{proof}
+
+\subsubsection{Paths from geometric and dynamical data}
+\label{sec:geometric-dynamical}
+
+\begin{remark}[Piecewise linear/smooth generation]
+\label{rem:pl-ps}
+If \(B\) is given additional structure (e.g.\ a manifold, a CW complex, or a metric space), then it is common to generate \(\gamma\) in restricted classes such as piecewise linear, piecewise smooth, or geodesic paths. These are still instances of the same notion: a continuous map \([0,1]\to B\).
+\end{remark}
+
+\begin{remark}[Paths as solutions to differential equations]
+\label{rem:ode-path}
+If \(B\subseteq \mathbb{R}^d\) is a region and one specifies a time-dependent velocity field \(v:B\times[0,1]\to \mathbb{R}^d\), then (when existence holds) the solution \(x(t)\) to the ODE \(x'(t)=v(x(t),t)\) defines a path \(\gamma(t):=x(t)\) in \(B\). This is a standard way to ``compute'' a path, but the relevant mathematical input is again the production of a continuous map.
+\end{remark}
+
+\subsubsection{Discrete outputs (graphs, grids, and algorithms)}
+\label{sec:discrete-to-continuous}
+
+\begin{remark}[Discrete spaces admit only trivial paths]
+\label{rem:discrete-space-paths}
+If \(B\) carries the discrete topology, then every path \([0,1]\to B\) is constant (since \([0,1]\) is connected). Therefore, to model nontrivial pathfinding on a graph or grid in a topological way, the base space must not be taken with the discrete topology; one instead replaces it by a geometric realization.
+\end{remark}
+
+\begin{definition}[Geometric realization of a graph (informal)]
+\label{def:geometric-realization}
+Let \(G\) be a graph. Its \emph{geometric realization} \(|G|\) is the 1-dimensional CW complex obtained by replacing each edge by a copy of \([0,1]\) and gluing endpoints according to the incidence relations. A finite edge-walk in \(G\) canonically determines a continuous path \([0,1]\to |G|\) by traversing the corresponding edges linearly in time.
+\end{definition}
+
+\begin{remark}[Algorithmic pathfinding and its topological meaning]
+\label{rem:algorithmic-pathfinding}
+Algorithms such as Dijkstra's or A* typically output a \emph{discrete} object (a sequence of vertices/edges in a graph or grid). Such an output is not, by itself, a topological path \([0,1]\to B\). It becomes one only after the modeling choice \(B:=|G|\) (or another continuous ambient space) and an explicit interpolation rule turning the discrete sequence into a continuous map (e.g.\ the canonical piecewise-linear traversal in \cref{def:geometric-realization}).
+\end{remark}
+
+\subsubsection{Symbolic ``paths'' (logic, rewriting, and type theory)}
+\label{sec:symbolic-paths}
+
+\begin{remark}[Rewrite sequences are not automatically topological paths]
+\label{rem:rewrite-not-topological}
+A finite rewrite sequence (e.g.\ \(\beta\)-reductions of lambda terms) is a sequence of symbolic transformations. It does not, in general, define a continuous map \([0,1]\to B\) unless one equips the space of states/terms with a topology (or a geometric realization of a transition graph) and specifies how the discrete steps are interpolated into a continuous parameter.
+\end{remark}
+
+\begin{remark}[Type-theoretic ``paths'' are a different notion]
+\label{rem:tt-paths}
+In homotopy type theory and related formalisms, the word ``path'' often refers to an \emph{identity witness} \(p:a=b\) in an identity type rather than a continuous map \([0,1]\to B\) in classical topology. While there is a guiding homotopical analogy between these notions, they should not be conflated. In particular, a proof-term \(p:a=b\) does not, without additional interpretation, provide a classical topological path in a space \(B\).
+\end{remark}
+
+\subsubsection{Homotopies as families of paths}
+\label{sec:homotopies-as-families}
+
+\begin{remark}[Homotopies generate paths only after fixing a parameter]
+\label{rem:homotopy-slice}
+A homotopy \(H:[0,1]\times[0,1]\to B\) can be viewed as a \emph{continuous family of paths} \(t\mapsto H(t,s)\) parameterized by \(s\in[0,1]\). For each fixed \(s_0\), the slice \(\gamma_{s_0}(t):=H(t,s_0)\) is a path. Thus, homotopies more naturally ``compute deformations between paths'' than single paths.
+\end{remark}
+
+\section{Unique path lifting and disjointness of distinct lifts}
+\label{sec:upl-disjoint}
+
+\begin{theorem}[Existence and uniqueness of path lifts for coverings]
+\label{thm:path-lifting}
+If \(p:E\to B\) is a covering map, then \(p\) has the unique path lifting property in the sense of \cref{def:upl}.
+\end{theorem}
+
+\begin{proof}
+Fix a path \(\gamma:[0,1]\to B\) and \(e_0\in E\) with \(p(e_0)=\gamma(0)\).
+
+\paragraph{Step 1: Choose a finite subdivision adapted to evenly covered sets.}
+For each \(t\in[0,1]\), choose an evenly covered neighborhood \(U_t\) of \(\gamma(t)\). Then \(\{\gamma^{-1}(U_t)\}_{t\in[0,1]}\) is an open cover of the compact space \([0,1]\), so there exist finitely many \(t_1,\dots,t_m\) such that \([0,1]=\bigcup_{j=1}^m \gamma^{-1}(U_{t_j})\).
+By compactness again (or by a standard Lebesgue number argument), there is a subdivision
+\[
+0=s_0<s_1<\cdots<s_N=1
+\]
+such that for each \(k=1,\dots,N\) there exists an index \(j(k)\) with
+\(
+\gamma([s_{k-1},s_k])\subseteq U_{t_{j(k)}}.
+\)
+Write \(U_k:=U_{t_{j(k)}}\); thus each \(\gamma([s_{k-1},s_k])\) lies in an evenly covered neighborhood \(U_k\).
+
+\paragraph{Step 2: Construct the lift inductively.}
+Since \(U_1\) is evenly covered, \(p^{-1}(U_1)=\bigsqcup_{\alpha} (U_1)_\alpha\) with each \(p|_{(U_1)_\alpha}\) a homeomorphism onto \(U_1\).
+There is a unique sheet \((U_1)_{\alpha_1}\) containing \(e_0\). Define \(\tilde\gamma\) on \([s_0,s_1]\) by
+\[
+\tilde\gamma(t):=\bigl(p|_{(U_1)_{\alpha_1}}\bigr)^{-1}(\gamma(t)).
+\]
+This is continuous, satisfies \(p\circ\tilde\gamma=\gamma\) on \([s_0,s_1]\), and satisfies \(\tilde\gamma(0)=e_0\).
+
+Assume by induction that \(\tilde\gamma\) has been defined continuously on \([0,s_{k-1}]\) with \(p\circ\tilde\gamma=\gamma\) there. Since \(\gamma([s_{k-1},s_k])\subseteq U_k\), and \(\tilde\gamma(s_{k-1})\in p^{-1}(\gamma(s_{k-1}))\subseteq p^{-1}(U_k)\), there is a unique sheet \((U_k)_{\alpha_k}\) containing \(\tilde\gamma(s_{k-1})\). Define \(\tilde\gamma\) on \([s_{k-1},s_k]\) by the same inverse-branch formula:
+\[
+\tilde\gamma(t):=\bigl(p|_{(U_k)_{\alpha_k}}\bigr)^{-1}(\gamma(t)).
+\]
+This agrees with the already-defined value at \(t=s_{k-1}\), hence yields a continuous extension. Proceeding to \(k=N\) constructs \(\tilde\gamma\) on all of \([0,1]\).
+
+\paragraph{Step 3: Uniqueness.}
+Suppose \(\tilde\gamma\) and \(\tilde\gamma'\) are lifts of \(\gamma\) with \(\tilde\gamma(0)=\tilde\gamma'(0)=e_0\). Let
+\[
+S:=\{t\in[0,1]: \tilde\gamma(t)=\tilde\gamma'(t)\}.
+\]
+Then \(S\) is nonempty (since \(0\in S\)) and closed (by continuity). To see that \(S\) is open, fix \(t_*\in S\). Choose an evenly covered neighborhood \(U\) of \(\gamma(t_*)\) and a subinterval \([a,b]\ni t_*\) with \(\gamma([a,b])\subseteq U\). Both \(\tilde\gamma(t_*)\) and \(\tilde\gamma'(t_*)\) equal the same point \(e_* \in p^{-1}(\gamma(t_*))\subset p^{-1}(U)\), hence lie in the same sheet \(U_\alpha\subset p^{-1}(U)\). On \([a,b]\), both lifts must therefore equal the same inverse branch \((p|_{U_\alpha})^{-1}\circ \gamma\). Thus \(\tilde\gamma=\tilde\gamma'\) on \([a,b]\), showing \([a,b]\subseteq S\). Hence \(S\) is open.
+Since \([0,1]\) is connected, \(S=[0,1]\). This proves uniqueness.
+\end{proof}
+
+\begin{corollary}[No crossing of distinct lifts]
+\label{cor:no-crossing}
+Let \(p:E\to B\) be a covering map and \(\gamma:[0,1]\to B\) a path. For any \(e,e'\in p^{-1}(\gamma(0))\) with \(e\neq e'\), let \(\tilde\gamma_e\) and \(\tilde\gamma_{e'}\) be the lifts with \(\tilde\gamma_e(0)=e\) and \(\tilde\gamma_{e'}(0)=e'\). Then
+\[
+\tilde\gamma_e([0,1])\cap \tilde\gamma_{e'}([0,1])=\varnothing.
+\]
+\end{corollary}
+
+\begin{proof}
+If \(\tilde\gamma_e(t_0)=\tilde\gamma_{e'}(t_0)\) for some \(t_0\), then by the uniqueness argument in \cref{thm:path-lifting} (applied starting at \(t_0\)), the two lifts must coincide on all of \([0,1]\), contradicting \(\tilde\gamma_e(0)=e\neq e'=\tilde\gamma_{e'}(0)\).
+\end{proof}
+
+\begin{remark}[Why discreteness is not the essential reason]
+\label{rem:not-discrete-reason}
+\Cref{cor:no-crossing} is sometimes attributed to the fiber being discrete. The actual mechanism is uniqueness of lifts: two lifts of the same base path cannot meet at a time unless they are identical everywhere.
+\end{remark}
+
+\section{Monodromy as a permutation of the fiber}
+\label{sec:monodromy}
+
+\subsection{Endpoint transport along a path}
+\label{sec:endpoint-transport}
+
+\begin{definition}[Endpoint transport]
+\label{def:endpoint-transport}
+Let \(p:E\to B\) be a covering map, let \(\gamma:[0,1]\to B\), and let \(e\in p^{-1}(\gamma(0))\). Define the \emph{endpoint transport} along \(\gamma\) by
+\[
+T_\gamma(e):=\tilde\gamma_e(1)\in p^{-1}(\gamma(1)),
+\]
+where \(\tilde\gamma_e\) is the unique lift with \(\tilde\gamma_e(0)=e\).
+\end{definition}
+
+\begin{proposition}[Endpoint transport is a bijection]
+\label{prop:endpoint-bijection}
+For any covering map \(p:E\to B\) and any path \(\gamma:[0,1]\to B\), the endpoint transport map
+\(
+T_\gamma:p^{-1}(\gamma(0))\to p^{-1}(\gamma(1))
+\)
+is a bijection.
+\end{proposition}
+
+\begin{proof}
+Let \(\bar\gamma(t):=\gamma(1-t)\) be the reversed path. For \(e_1\in p^{-1}(\gamma(1))\), let \(\widetilde{\bar\gamma}_{e_1}\) be the unique lift of \(\bar\gamma\) satisfying \(\widetilde{\bar\gamma}_{e_1}(0)=e_1\), and define \(T_{\bar\gamma}(e_1):=\widetilde{\bar\gamma}_{e_1}(1)\).
+
+Fix \(e\in p^{-1}(\gamma(0))\) and let \(\tilde\gamma_e\) be the lift of \(\gamma\) with \(\tilde\gamma_e(0)=e\). Set \(e_1:=T_\gamma(e)=\tilde\gamma_e(1)\). Consider the time-reversal of \(\tilde\gamma_e\),
+\[
+\hat\gamma(t):=\tilde\gamma_e(1-t).
+\]
+Then \(p\circ \hat\gamma(t)=p(\tilde\gamma_e(1-t))=\gamma(1-t)=\bar\gamma(t)\), and \(\hat\gamma(0)=\tilde\gamma_e(1)=e_1\). Hence \(\hat\gamma\) is a lift of \(\bar\gamma\) starting at \(e_1\), so by uniqueness of path lifting one has \(\hat\gamma=\widetilde{\bar\gamma}_{e_1}\). Therefore
+\[
+T_{\bar\gamma}(T_\gamma(e))=T_{\bar\gamma}(e_1)=\widetilde{\bar\gamma}_{e_1}(1)=\hat\gamma(1)=\tilde\gamma_e(0)=e.
+\]
+The symmetric argument starting from \(e_1\in p^{-1}(\gamma(1))\) shows \(T_\gamma(T_{\bar\gamma}(e_1))=e_1\). Thus \(T_{\bar\gamma}\) is the inverse of \(T_\gamma\), so \(T_\gamma\) is a bijection.
+\end{proof}
+
+\begin{corollary}[Fiber cardinality is constant on path components]
+\label{cor:fiber-cardinality-constant}
+Let \(p:E\to B\) be a covering map and let \(b_0,b_1\in B\) lie in the same path component. Then there exists a bijection \(p^{-1}(b_0)\cong p^{-1}(b_1)\). In particular, if \(p^{-1}(b_0)\) is finite of size \(n\), then every fiber over the path component of \(b_0\) has cardinality \(n\).
+\end{corollary}
+
+\begin{proof}
+Choose a path \(\gamma\) with \(\gamma(0)=b_0\) and \(\gamma(1)=b_1\). Then \(T_\gamma:p^{-1}(b_0)\to p^{-1}(b_1)\) is a bijection by \cref{prop:endpoint-bijection}.
+\end{proof}
+
+\subsection{Loops and the monodromy permutation}
+\label{sec:loop-monodromy}
+
+\begin{definition}[Monodromy permutation of a loop]
+\label{def:monodromy-perm}
+Let \(p:E\to B\) be a covering map and let \(\gamma\) be a loop based at \(b_0\), i.e.\ \(\gamma(0)=\gamma(1)=b_0\). The \emph{monodromy permutation} associated to \(\gamma\) is the bijection
+\[
+M_\gamma := T_\gamma : p^{-1}(b_0)\to p^{-1}(b_0).
+\]
+\end{definition}
+
+\begin{remark}
+\label{rem:monodromy-group-action}
+When \(B\) is path-connected and locally path-connected, the map \([\gamma]\mapsto M_\gamma\) factors through homotopy classes of loops and yields the usual monodromy action of \(\pi_1(B,b_0)\) on the fiber. This note does not require the full generality of that construction; only the loop-permutation viewpoint is used.
+\end{remark}
+
+\section{Deck transformations and when they relate distinct lifts}
+\label{sec:deck}
+
+\begin{definition}[Deck transformation]
+\label{def:deck}
+Let \(p:E\to B\) be a covering map. A \emph{deck transformation} is a homeomorphism \(h:E\to E\) such that \(p\circ h=p\). The set of all deck transformations forms a group under composition, denoted \(\mathrm{Deck}(E/B)\).
+\end{definition}
+
+\begin{proposition}[Deck transformations send lifts to lifts]
+\label{prop:deck-sends-lifts}
+Let \(p:E\to B\) be a covering map, let \(\gamma:[0,1]\to B\) be a path, and let \(h\in \mathrm{Deck}(E/B)\). Then for any \(e\in p^{-1}(\gamma(0))\),
+\[
+h\circ \tilde\gamma_e = \tilde\gamma_{h(e)}.
+\]
+\end{proposition}
+
+\begin{proof}
+Both \(h\circ \tilde\gamma_e\) and \(\tilde\gamma_{h(e)}\) are lifts of \(\gamma\), since
+\(
+p\circ (h\circ \tilde\gamma_e)=(p\circ h)\circ \tilde\gamma_e = p\circ \tilde\gamma_e = \gamma.
+\)
+Moreover \((h\circ \tilde\gamma_e)(0)=h(e)\), so by uniqueness of lifts with fixed initial value (\cref{thm:path-lifting}), they agree.
+\end{proof}
+
+\subsection{Regular coverings}
+\label{sec:regular}
+
+\begin{definition}[Regular (normal) covering]
+\label{def:regular}
+A covering map \(p:E\to B\) with \(E\) connected is \emph{regular} (or \emph{normal}) if for some (equivalently, every) \(b\in B\), the action of \(\mathrm{Deck}(E/B)\) on the fiber \(p^{-1}(b)\) is transitive.
+\end{definition}
+
+\begin{remark}[Relation to other common definitions (optional background)]
+\label{rem:regular-equivalences}
+Many references define ``regular/normal'' coverings in terms of the fundamental group classification of coverings. Under the standard hypotheses that \(B\) is path-connected, locally path-connected, and semilocally simply connected, each connected covering \(p:E\to B\) corresponds (up to isomorphism) to a subgroup \(H\le \pi_1(B,b_0)\), and the deck group is isomorphic to \(N(H)/H\), where \(N(H)\) is the normalizer of \(H\) in \(\pi_1(B,b_0)\). In that setting, regularity in \cref{def:regular} is equivalent to \(N(H)=\pi_1(B,b_0)\), i.e.\ to \(H\) being a normal subgroup. This note does not use the classification theorem; it uses only the transitivity formulation \cref{def:regular}.
+\end{remark}
+
+\begin{proposition}[Deck-transformation relation between lifts in the regular case]
+\label{prop:regular-deck-relation}
+Let \(p:E\to B\) be a regular covering with \(E\) connected. Fix a path \(\gamma:[0,1]\to B\) with \(\gamma(0)=b_0\). For any two points \(e,e'\in p^{-1}(b_0)\), there exists \(h\in \mathrm{Deck}(E/B)\) such that
+\[
+h\circ \tilde\gamma_e = \tilde\gamma_{e'}.
+\]
+In particular, in a regular covering, all lifts of a fixed base path are ``symmetry translates'' of one another by deck transformations.
+\end{proposition}
+
+\begin{proof}
+By regularity, there exists \(h\in \mathrm{Deck}(E/B)\) with \(h(e)=e'\). Then \cref{prop:deck-sends-lifts} gives \(h\circ\tilde\gamma_e=\tilde\gamma_{h(e)}=\tilde\gamma_{e'}\).
+\end{proof}
+
+\begin{remark}[Why this can fail in non-regular coverings]
+\label{rem:nonregular-fail}
+If \(p:E\to B\) is not regular, then it may happen that there is no deck transformation sending \(e\) to \(e'\) in a given fiber, and therefore no global symmetry identifying \(\tilde\gamma_e\) with \(\tilde\gamma_{e'}\). The lifts remain disjoint by \cref{cor:no-crossing}, but they are not forced to be related by \(\mathrm{Deck}(E/B)\).
+\end{remark}
+
+\section{Example: a connected non-regular finite covering with trivial deck group}
+\label{sec:nonregular-example}
+
+This example exists solely to illustrate \cref{rem:nonregular-fail} concretely.
+
+\begin{definition}[The figure-eight space]
+\label{def:figure-eight}
+Let \(B\) be the wedge of two circles \(S^1\vee S^1\), realized as a graph with one vertex \(*\) and two oriented loops labeled \(a\) and \(b\).
+\end{definition}
+
+\begin{definition}[A \(3\)-sheeted covering graph]
+\label{def:three-sheet-cover}
+Let \(E\) be the graph with vertex set \(\{0,1,2\}\) and with oriented edges labeled \(a\) and \(b\) defined as follows.
+\begin{itemize}
+  \item The \(a\)-edges form a directed \(3\)-cycle: \(0\xrightarrow{a}1\xrightarrow{a}2\xrightarrow{a}0\).
+  \item The \(b\)-edges swap \(0\) and \(1\) and fix \(2\): \(0\xrightarrow{b}1\), \(1\xrightarrow{b}0\), and \(2\xrightarrow{b}2\) (a loop at \(2\)).
+\end{itemize}
+Define \(p:E\to B\) by sending every vertex of \(E\) to the single vertex \(*\) of \(B\), and sending each labeled edge of \(E\) homeomorphically onto the corresponding labeled loop edge of \(B\).
+\end{definition}
+
+\begin{proposition}[The map \(p:E\to B\) is a connected \(3\)-sheeted covering]
+\label{prop:three-sheet-covering}
+The map \(p\) in \cref{def:three-sheet-cover} is a covering map. The space \(E\) is connected, and the fiber over \(*\in B\) consists of the three vertices \(\{0,1,2\}\).
+\end{proposition}
+
+\begin{proof}
+As \(B\) and \(E\) are graphs, it suffices to verify the covering condition in terms of the local ``star'' at each vertex: around the unique vertex \(*\) of \(B\), there are exactly two oriented edge germs (one for \(a\) and one for \(b\)). Around each vertex \(i\in E\), there is exactly one outgoing \(a\)-edge and exactly one outgoing \(b\)-edge by construction. Thus \(p\) induces a bijection on stars at each vertex, so \(p\) is a graph covering, hence a covering map in the topological sense.
+
+Connectivity of \(E\) follows because the \(a\)-edges already connect the three vertices in a single cycle. Finally, the fiber over \(*\) is precisely the vertex set \(\{0,1,2\}\), since all vertices map to \(*\).
+\end{proof}
+
+\begin{proposition}[The deck group is trivial, hence the covering is not regular]
+\label{prop:trivial-deck-group}
+For the covering \(p:E\to B\) above, one has \(\mathrm{Deck}(E/B)=\{ \mathrm{id}_E\}\). In particular, the covering is not regular.
+\end{proposition}
+
+\begin{proof}
+Let \(h\in \mathrm{Deck}(E/B)\). Since \(p\circ h=p\), the homeomorphism \(h\) must send vertices to vertices (as vertices are exactly the points where the local degree is not \(2\) in the graph structure) and must preserve edge labels (because each edge maps homeomorphically onto a labeled edge of \(B\)).
+
+Therefore the induced permutation of the fiber \(\{0,1,2\}\) must commute with both label actions: it must commute with the \(a\)-cycle \((0\,1\,2)\) and with the \(b\)-swap \((0\,1)\). The only permutation in \(S_3\) commuting with both \((0\,1\,2)\) and \((0\,1)\) is the identity, because \((0\,1\,2)\) and \((0\,1)\) generate \(S_3\), whose center is trivial. Hence \(h\) fixes all vertices, and then it fixes all edges, so \(h=\mathrm{id}_E\).
+
+Since the deck group is trivial, it cannot act transitively on the three-point fiber. Thus the covering is not regular by \cref{def:regular}.
+\end{proof}
+
+\section{A toy ``secret sharing'' model based on UPL}
+\label{sec:secret-model}
+
+This section formalizes the claim ``Alice's success probability is \(1/n\)'' as a theorem, making explicit the assumptions under which it holds. The result is purely information-theoretic and should not be confused with computational cryptographic security.
+
+\subsection{Observation model}
+\label{sec:observation-model}
+
+\begin{definition}[Sheet-keyed trajectory model]
+\label{def:sheet-keyed-model}
+Fix a covering map \(p:E\to B\), a basepoint \(b_0\in B\), and a path \(\gamma:[0,1]\to B\) with \(\gamma(0)=b_0\). Assume the fiber \(F:=p^{-1}(b_0)\) is finite with \(|F|=n\).
+
+The following random experiment is considered.
+\begin{itemize}
+  \item Bob samples an initial sheet \(E_0\) uniformly from \(F\).
+  \item Bob follows the lifted path \(\tilde\Gamma := \tilde\gamma_{E_0}\), i.e.\ the unique lift of \(\gamma\) with \(\tilde\Gamma(0)=E_0\).
+  \item Alice observes \(\gamma\) (and the spaces \(E,B\), the map \(p\), and the basepoint \(b_0\)), but does not observe \(E_0\) nor any additional side information about \(\tilde\Gamma\).
+\end{itemize}
+\end{definition}
+
+\begin{remark}[What is being hidden]
+\label{rem:hidden-variable}
+In \cref{def:sheet-keyed-model}, the ``secret'' is the initial sheet \(E_0\in F\). The full lifted trajectory \(\tilde\Gamma\) is determined by \((\gamma,E_0)\) via \cref{thm:path-lifting}; thus hiding \(E_0\) hides \(\tilde\Gamma\) among the \(n\) candidate lifts.
+\end{remark}
+
+\subsection{Exact guessing probability}
+\label{sec:guessing-prob}
+
+\begin{proposition}[Uniform posterior and \(1/n\) optimal success]
+\label{prop:one-over-n}
+In the model of \cref{def:sheet-keyed-model}, every estimator \(\widehat E_0=\widehat E_0(\gamma)\) satisfies
+\[
+\mathbb{P}(\widehat E_0 = E_0)=\frac{1}{n}.
+\]
+Equivalently, the observation \(\gamma\) provides no information about the initial sheet: \(E_0\) remains uniform on \(F\) conditional on \(\gamma\).
+\end{proposition}
+
+\begin{proof}
+In \cref{def:sheet-keyed-model}, \(\gamma\) is treated as fixed public data, and \(E_0\) is sampled uniformly from \(F\) independently of \(\gamma\). Therefore the conditional distribution of \(E_0\) given \(\gamma\) is still uniform on \(F\). For any (deterministic) estimator \(\widehat E_0(\gamma)\in F\), one has
+\[
+\mathbb{P}(\widehat E_0 = E_0 \mid \gamma)=\mathbb{P}(E_0=\widehat E_0(\gamma)\mid \gamma)=\frac{1}{n}.
+\]
+Taking expectations over \(\gamma\) (trivial here since \(\gamma\) is fixed) yields \(\mathbb{P}(\widehat E_0=E_0)=1/n\). Randomized estimators do not improve this bound, since the maximum point mass of a uniform distribution is \(1/n\).
+\end{proof}
+
+\begin{remark}[Monodromy does not change the \(1/n\) calculation]
+\label{rem:monodromy-does-not-help}
+If \(\gamma\) is a loop at \(b_0\), then the endpoints \(\tilde\gamma_e(1)\) equal \(M_\gamma(e)\) for the monodromy permutation \(M_\gamma\) of \cref{def:monodromy-perm}. This can change where a lift ends in the fiber, but it does not, by itself, change the fact that \(E_0\) is uniform and unobserved in \cref{def:sheet-keyed-model}. In particular, the guessing probability remains \(1/n\).
+\end{remark}
+
+\begin{remark}[When \(1/n\) can fail]
+\label{rem:side-information}
+The conclusion of \cref{prop:one-over-n} relies entirely on the observation model: Alice observes only \(\gamma\). If Alice is also given additional information correlated with the sheet (for instance, the endpoint \(\tilde\Gamma(1)\) in the fiber, or partial information about the path in \(E\)), then the posterior need not remain uniform. Covering-space theory alone does not supply a canonical probability model; any security interpretation is necessarily distributional.
+\end{remark}
+
+\section{Example: the \texorpdfstring{$n$}{n}-fold covering of the circle}
+\label{sec:circle-example}
+
+\begin{example}[The map \(z\mapsto z^n\)]
+\label{ex:z-to-zn}
+Let \(p:S^1\to S^1\) be \(p(z)=z^n\) for \(n\ge 2\). This is an \(n\)-sheeted covering map. Fix \(b_0=1\in S^1\); then the fiber \(p^{-1}(1)\) consists of the \(n\)th roots of unity.
+
+Let \(\gamma(t)=e^{2\pi i t}\) be the standard once-around loop based at \(1\). For a choice \(e_k:=e^{2\pi i k/n}\in p^{-1}(1)\), the lift \(\tilde\gamma_{e_k}\) winds once around the cover and ends at \(e_{k+1}\). Thus the monodromy \(M_\gamma\) is the \(n\)-cycle \(k\mapsto k+1\) on the fiber.
+\end{example}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+For a covering map \(p:E\to B\), unique path lifting yields a precise statement: for each initial point \(e\) in the fiber over \(\gamma(0)\), there exists a unique lifted path \(\tilde\gamma_e\), and two such lifts are disjoint unless they are identical. For loops, endpoint transport defines a permutation of the fiber (monodromy). In a probabilistic toy model where the initial sheet is uniformly random and the observer sees only the base path, the success probability of guessing the initial sheet is exactly \(1/n\). Finally, the relation between different lifts via deck transformations requires regularity; without that hypothesis, distinct lifts need not be deck translates.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+

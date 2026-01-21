@@ -1,0 +1,719 @@
+\documentclass[11pt,a4paper]{article}
+
+% Essential packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Open question environment
+\newenvironment{openquestion}{\par\textbf{Open Question.}\itshape}{\par}
+
+\title{Discretizing the \(2\)-Sheeted Covering \(T^2\to K\):\\
+Topology, a Property Checklist, and a Discrete Analogue}
+\author{AI Notes}
+\date{2026-01-18}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note isolates the standard \(2\)-sheeted covering map \(p:T^2\to K\) from the torus to the Klein bottle using explicit fiber-bundle language: total space \(E\), base space \(B\), projection \(\pi\), and fibers \(E_b\). It then records a checklist of properties enjoyed by the continuous covering and discusses discretization strategies, emphasizing that a mere finite set of sampled points does not retain topological path-lifting structure unless additional combinatorial data (e.g.\ a graph or cell complex) is specified. Finally, an equivariant grid discretization is described and compared against the checklist, including a graph-covering analogue of unique path lifting.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Covering maps and fiber bundles provide a natural source of finite ``fiber ambiguity'': a map \(\pi:E\to B\) can have finite fibers \(E_b=\pi^{-1}(b)\) even when \(\dim(E)=\dim(B)\). In protocol-motivated discussions, this suggests a discrete uncertainty (e.g.\ a ``sheet bit'') that is not created by dimension drop.
+
+The present note has three parts.
+\begin{itemize}
+  \item \cref{sec:continuous} records the topology of the standard \(2\)-sheeted covering \(T^2\to K\) using the notation \(E,B,\pi\).
+  \item \cref{sec:property-table} lists properties of the continuous map and describes which ones can or cannot be preserved by a discretization.
+  \item \cref{sec:discrete-analogue} proposes an equivariant discretization and checks it against the property list.
+\end{itemize}
+
+\section{The continuous covering \(T^2\to K\) in \(E,B,\pi\) language}
+\label{sec:continuous}
+
+\subsection{Standing notation: total space, base, projection, and fibers}
+\label{sec:standing-notation}
+
+\begin{definition}[Fiber of a map]
+\label{def:fiber}
+Let \(\pi:E\to B\) be a map and let \(b\in B\). The \emph{fiber over \(b\)} is
+\[
+E_b := \pi^{-1}(b)=\{e\in E:\ \pi(e)=b\}.
+\]
+\end{definition}
+
+\begin{definition}[Covering map]
+\label{def:covering}
+A map \(\pi:E\to B\) is a \emph{covering map} if it is surjective and for every \(b\in B\) there exists an open neighborhood \(U\subseteq B\) of \(b\) such that
+\[
+\pi^{-1}(U)=\bigsqcup_{\alpha\in A} U_\alpha
+\]
+as a disjoint union of open sets, and for each \(\alpha\) the restriction \(\pi|_{U_\alpha}:U_\alpha\to U\) is a homeomorphism.
+\end{definition}
+
+\begin{definition}[\(d\)-sheeted covering]
+\label{def:d-sheeted}
+A covering map \(\pi:E\to B\) is \emph{\(d\)-sheeted} if every fiber \(E_b\) has exactly \(d\) points.
+\end{definition}
+
+\subsection{Models of \(T^2\) and \(K\)}
+\label{sec:models}
+
+The torus is modeled as
+\[
+T^2 := (\mathbb{R}/\mathbb{Z})\times(\mathbb{R}/\mathbb{Z}),
+\]
+so a point is represented by \((u,v)\in[0,1)\times[0,1)\) with arithmetic performed modulo \(1\) in each coordinate.
+
+The Klein bottle is modeled as the quotient of \([0,1)\times[0,1)\) under the edge identifications
+\[
+(x,0)\sim(x,1),
+\qquad
+(0,y)\sim(1,1-y).
+\]
+The resulting quotient space is denoted \(K\).
+
+\subsection{The free involution and the quotient map}
+\label{sec:involution-quotient}
+
+Let \(E:=T^2\). Define an involution \(\tau:E\to E\) by
+\[
+\tau(u,v) := \bigl(u+\tfrac12,\ 1-v\bigr)\quad (\mathrm{mod}\ 1).
+\]
+
+\begin{proposition}[The involution \(\tau\) is free]
+\label{prop:tau-free}
+The involution \(\tau\) has no fixed points.
+\end{proposition}
+
+\begin{proof}
+If \(\tau(u,v)=(u,v)\) in \(T^2\), then \(u+\tfrac12\equiv u\pmod 1\), which is impossible. Hence there are no fixed points.
+\end{proof}
+
+\begin{proposition}[Quotient by a free \(\mathbb{Z}_2\)-action yields a \(2\)-sheeted covering]
+\label{prop:free-z2-cover}
+Let \(B:=E/\langle\tau\rangle\) be the orbit space with quotient topology and let \(\pi:E\to B\) be the quotient map \(e\mapsto[e]\). Then \(\pi\) is a \(2\)-sheeted covering map. In particular, for every \(b=[e]\in B\),
+\[
+E_b=\pi^{-1}([e])=\{e,\tau(e)\}
+\qquad\text{and hence}\qquad
+\#E_b=2.
+\]
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+The fiber statement follows immediately from freeness of the \(\mathbb{Z}_2\)-action. To show \(\pi\) is a covering map, fix \(e\in E\). Since \(E\) is Hausdorff and \(\{e,\tau(e)\}\) is a finite set of distinct points, there exist disjoint open neighborhoods \(U\ni e\) and \(V\ni\tau(e)\). Shrink \(U\) so that \(\tau(U)\subseteq V\). Then \(\pi^{-1}(\pi(U))=U\sqcup\tau(U)\), and \(\pi|_{U}:U\to \pi(U)\) and \(\pi|_{\tau(U)}:\tau(U)\to\pi(U)\) are homeomorphisms. Thus every point of \(B\) has an evenly covered neighborhood.
+\end{proof}
+
+\begin{remark}[Identifying the quotient with the Klein bottle]
+\label{rem:quotient-is-klein}
+The orbit space \(E/\langle\tau\rangle\) is homeomorphic to the Klein bottle \(K\). The identification can be made explicit; see \cref{prop:quotient-is-klein-explicit}. Under this identification, the quotient map \(\pi:E=T^2\to B\cong K\) is the standard \(2\)-sheeted covering customarily denoted \(T^2\to K\).
+\end{remark}
+
+\begin{proposition}[An explicit identification \(E/\langle\tau\rangle\cong K\)]
+\label{prop:quotient-is-klein-explicit}
+Let \(E=T^2\) and \(\tau(u,v)=(u+\tfrac12,1-v)\). Define a map \(p:E\to K\) by the following recipe: given \((u,v)\in[0,1)\times[0,1)\) representing a point of \(E\), set
+\[
+(u',v') :=
+\begin{cases}
+(u,v) & \text{if } u\in[0,\tfrac12),\\
+(u-\tfrac12,\ (1-v)\bmod 1) & \text{if } u\in[\tfrac12,1),
+\end{cases}
+\]
+and define
+\[
+p(u,v):=[(x,y)]\in K,
+\qquad
+(x,y):=(2u',v').
+\]
+Then \(p\) is constant on \(\tau\)-orbits and induces a homeomorphism \(\bar p: E/\langle\tau\rangle \xrightarrow{\ \cong\ } K\) such that \(p=\bar p\circ \pi\).
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+The map \(p\) was designed so that applying \(\tau\) swaps the two cases in the definition of \((u',v')\) but yields the same normalized pair \((u',v')\); hence \(p\circ\tau=p\), and the induced map \(\bar p\) exists by the universal property of quotients.
+
+Surjectivity of \(\bar p\) follows from the formula: for \((x,y)\in[0,1)\times[0,1)\), the point \((u,v)=(x/2,y)\in E\) satisfies \(p(u,v)=[(x,y)]\). Injectivity is equivalent to: if \(p(u,v)=p(\tilde u,\tilde v)\) then \((u,v)\) and \((\tilde u,\tilde v)\) lie in the same \(\tau\)-orbit; this holds by unwinding the normalization step (the only ambiguity is the fold across \(u=\tfrac12\), which is exactly the \(\tau\)-identification).
+
+Finally, since \(E\) is compact Hausdorff and \(\langle\tau\rangle\) is finite, the quotient \(E/\langle\tau\rangle\) is compact Hausdorff. The map \(\bar p\) is a continuous bijection from a compact space to a Hausdorff space, hence a homeomorphism.
+\end{proof}
+
+\subsection{Unique path lifting (continuous)}
+\label{sec:upl-continuous}
+
+\begin{definition}[Unique path lifting property]
+\label{def:upl}
+A map \(\pi:E\to B\) has the \emph{unique path lifting property} if for every path \(\gamma:I\to B\) and every \(\tilde e_0\in E\) with \(\pi(\tilde e_0)=\gamma(0)\), there exists a unique path \(\tilde\gamma:I\to E\) such that \(\pi\circ\tilde\gamma=\gamma\) and \(\tilde\gamma(0)=\tilde e_0\).
+\end{definition}
+
+\begin{proposition}[Covering maps lift paths uniquely]
+\label{prop:cover-upl}
+If \(\pi:E\to B\) is a covering map, then \(\pi\) has the unique path lifting property.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Cover \(\gamma(I)\) by evenly covered neighborhoods. By compactness of \(I\), a finite subcover suffices, hence \(I\) can be subdivided so each subinterval maps into one evenly covered neighborhood. On each subinterval, the lift is forced to lie in the unique sheet determined by continuity and the initial condition. Uniqueness follows by the same local argument.
+\end{proof}
+
+\section{A property checklist for discretization}
+\label{sec:property-table}
+
+The phrase ``discretizing \(T^2\to K\)'' can mean several inequivalent constructions. This section records a checklist of properties of the continuous covering and indicates which additional structure is required for a discretization to preserve them in a non-vacuous sense.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.13\linewidth} p{0.82\linewidth}}
+\hline
+\textbf{ID} & \textbf{Property of \(\pi:E=T^2\to B=K\)}\\
+\hline
+P1 & \textbf{Free \(\mathbb{Z}_2\)-quotient structure.} There exists a free involution \(\tau\) with \(B\cong E/\langle\tau\rangle\) (\cref{prop:tau-free,prop:free-z2-cover}).\\
+P2 & \textbf{Constant fiber size.} Every fiber \(E_b\) has cardinality \(2\) (\cref{def:d-sheeted,prop:free-z2-cover}).\\
+P3 & \textbf{Covering local structure.} Every \(b\in B\) has an evenly covered neighborhood (\cref{def:covering}).\\
+P4 & \textbf{Unique path lifting.} Continuous paths lift uniquely once a starting point is fixed (\cref{def:upl,prop:cover-upl}).\\
+P5 & \textbf{Homotopy-theoretic consequences.} For example, the induced subgroup relationship on \(\pi_1\) typical of coverings.\\
+\hline
+\end{tabular}
+\caption{A minimal checklist of properties used to compare discretizations.}
+\label{tab:properties}
+\end{table}
+
+\begin{remark}[Why a finite set is not enough to preserve P3--P5]
+\label{rem:set-not-enough}
+Sampling finitely many points of a manifold produces a finite set. With the subspace topology it is totally disconnected, and with the discrete topology every map is continuous and local conditions become vacuous. Consequently, preserving P3--P5 requires additional combinatorial structure (e.g.\ a graph, simplicial complex, or CW complex) that encodes adjacency and hence supports nontrivial notions of path and lifting.
+\end{remark}
+
+\section{A discrete analogue and a checklist comparison}
+\label{sec:discrete-analogue}
+
+\subsection{Equivariant grid sampling (as a set)}
+\label{sec:grid-sampling}
+
+Fix an integer \(n\ge 2\). Consider the finite subset of \(T^2\)
+\[
+P_{2n,n}:=\Bigl\{\Bigl(\tfrac{i}{2n},\tfrac{j}{n}\Bigr)\in T^2:\ i\in\mathbb{Z}_{2n},\ j\in\mathbb{Z}_n\Bigr\}.
+\]
+It is stable under the involution \(\tau(u,v)=(u+\tfrac12,1-v)\): indeed,
+\[
+\tau\Bigl(\tfrac{i}{2n},\tfrac{j}{n}\Bigr)=\Bigl(\tfrac{i+n}{2n},\tfrac{-j}{n}\Bigr).
+\]
+Thus \(\tau\) restricts to a free involution \(\tau_n\) on \(P_{2n,n}\) corresponding to the index map
+\[
+\tau_n(i,j)=(i+n,-j).
+\]
+
+\begin{definition}[Discrete total space, base, and projection (set-level)]
+\label{def:discrete-set-map}
+Let \(E_n:=\mathbb{Z}_{2n}\times\mathbb{Z}_n\), \(B_n:=E_n/\langle\tau_n\rangle\), and let \(\pi_n:E_n\to B_n\) be the quotient map.
+\end{definition}
+
+\begin{proposition}[Set-level preservation of P1--P2]
+\label{prop:set-level}
+At the level of sets, the map \(\pi_n:E_n\to B_n\) satisfies P1 and P2: it is the quotient by a free \(\mathbb{Z}_2\)-action and every fiber has exactly two points.
+\end{proposition}
+
+\begin{proof}
+Freeness is immediate: \((i,j)=\tau_n(i,j)\) would force \(i+n\equiv i\pmod{2n}\), i.e.\ \(n\equiv 0\pmod{2n}\), impossible for \(n\ge 2\). The fiber description \( \pi_n^{-1}([e])=\{e,\tau_n(e)\}\) follows.
+\end{proof}
+
+\subsection{Adding a graph structure (to recover P3--P4 combinatorially)}
+\label{sec:graph-structure}
+
+To make discrete ``paths'' meaningful, equip \(E_n\) with the undirected graph structure in which \((i,j)\) is adjacent to \((i\pm1,j)\) and \((i,j\pm1)\), with arithmetic performed in \(\mathbb{Z}_{2n}\) and \(\mathbb{Z}_n\). Let \(G(E_n)\) denote this graph.
+
+The involution \(\tau_n\) is an automorphism of \(G(E_n)\). Define the \emph{orbit graph} \(G(B_n)\) as follows: its vertex set is the orbit set \(B_n=E_n/\langle\tau_n\rangle\), and two distinct vertices \([v],[w]\in B_n\) are adjacent in \(G(B_n)\) if and only if there exist representatives \(v'\in[v]\), \(w'\in[w]\) that are adjacent in \(G(E_n)\). (Equivalently, \(G(B_n)\) is the simple graph obtained from the quotient multigraph by forgetting edge multiplicities.) The projection \(\pi_n:G(E_n)\to G(B_n)\) is then a graph morphism.
+
+\begin{definition}[Graph covering]
+\label{def:graph-cover}
+A morphism of graphs \(f:\widetilde G\to G\) is a \emph{covering map of graphs} if for every vertex \(\tilde v\in \widetilde G\), the induced map from the neighbor set \(N(\tilde v)\) to \(N(f(\tilde v))\) is a bijection.
+\end{definition}
+
+\begin{proposition}[The quotient map is a \(2\)-sheeted graph covering]
+\label{prop:graph-covering}
+With the above choices, \(\pi_n:G(E_n)\to G(B_n)\) is a \(2\)-sheeted covering map of graphs.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Since \(\tau_n\) is a graph automorphism acting freely on vertices, neighbors of a vertex \(v\in E_n\) project to distinct neighbors of \([v]\in B_n\). Conversely, by construction of adjacency in \(G(B_n)\), every neighbor of \([v]\) admits a representative adjacent to \(v\); the freeness of the action and the fact that \(\tau_n\) is an automorphism ensure this representative is unique in the neighbor set \(N(v)\). Hence the neighbor map \(N(v)\to N([v])\) is a bijection for each \(v\), i.e.\ \(\pi_n\) is a graph covering.
+\end{proof}
+
+\begin{proposition}[Unique path lifting for graph coverings]
+\label{prop:graph-upl}
+If \(f:\widetilde G\to G\) is a covering map of graphs in the sense of \cref{def:graph-cover}, then every finite path in \(G\) lifts uniquely once its initial vertex lift is fixed.
+\end{proposition}
+
+\begin{proof}
+Proceed inductively along the path: each step chooses a unique neighbor upstairs because the neighbor map is a bijection. Uniqueness follows from the same stepwise argument.
+\end{proof}
+
+\subsection{Checklist comparison}
+\label{sec:checklist-comparison}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.13\linewidth} p{0.35\linewidth} p{0.43\linewidth}}
+\hline
+\textbf{ID} & \textbf{Set-level model \(\pi_n:E_n\to B_n\)} & \textbf{Graph-level model \(\pi_n:G(E_n)\to G(B_n)\)}\\
+\hline
+P1 & Preserved (free \(\mathbb{Z}_2\)-quotient). & Preserved (same).\\
+P2 & Preserved (2-point fibers). & Preserved (2-point fibers).\\
+P3 & Not meaningful/topological. & Preserved as ``graph covering'' (\cref{prop:graph-covering}).\\
+P4 & Not meaningful without paths. & Preserved for graph paths (\cref{prop:graph-upl}).\\
+P5 & Not preserved (no topology). & Partially recovered (e.g.\ \(\pi_1\) of graphs), but does not equal \(\pi_1(T^2)\) without a richer cell complex.\\
+\hline
+\end{tabular}
+\caption{Continuous properties from \cref{tab:properties} checked against two discrete models.}
+\label{tab:discrete-comparison}
+\end{table}
+
+\begin{remark}[Why the graph model is still only an analogue]
+\label{rem:graph-only-analogue}
+The graph-level model retains a meaningful lifting theory (P4) but encodes only \(1\)-dimensional combinatorics. Recovering a closer analogue of the manifold topology of \(T^2\) requires a \(2\)-dimensional cell complex (e.g.\ a square complex on the grid) and a covering map in that category. This note restricts to the graph version because it is the minimal setting in which ``discrete path lifting'' is well-defined.
+\end{remark}
+
+\section{A richer discretization: from points to graphs to a \(2\)-dimensional cell complex}
+\label{sec:richer-cell-complex}
+
+This section explains what is meant by a ``richer'' discretization and how it relates to the set-level and graph-level constructions of \cref{sec:grid-sampling,sec:graph-structure}.
+
+\subsection{Skeletons: how a cell complex refines a finite set}
+\label{sec:skeletons}
+
+Informally, a cell complex augments a finite set of sampled points by specifying which points are connected by edges and which edge-loops bound faces.
+
+\begin{definition}[Skeleta (informal)]
+\label{def:skeleta-informal}
+Let \(X\) be a \(2\)-dimensional CW complex (or a simplicial/cubical complex). Its \emph{\(0\)-skeleton} \(X^{(0)}\) is the set of vertices, its \emph{\(1\)-skeleton} \(X^{(1)}\) is the graph obtained by vertices and edges, and \(X\) itself is obtained from \(X^{(1)}\) by attaching \(2\)-cells (faces) along edge-loops.
+\end{definition}
+
+\begin{remark}[Relation to the models in \cref{sec:discrete-analogue}]
+\label{rem:points-graphs-cells}
+The set-level discretization \(\pi_n:E_n\to B_n\) is best interpreted as retaining only a \(0\)-skeleton: it remembers the vertex set and the \(\mathbb{Z}_2\)-orbit relation but does not remember adjacency. The graph-level model equips \(E_n\) with edges and hence specifies a \(1\)-skeleton \(G(E_n)=X_n^{(1)}\). A ``richer cell complex'' adds \(2\)-cells to obtain a \(2\)-dimensional complex \(X_n\) whose \(1\)-skeleton is the previously chosen grid graph.
+\end{remark}
+
+\subsection{Why \(2\)-cells matter: recovering \(\pi_1\) of the torus}
+\label{sec:two-cells-matter}
+
+The need for \(2\)-cells can be seen already at the level of fundamental groups.
+
+\begin{remark}
+\label{rem:pi1-graph-vs-surface}
+The fundamental group of a connected graph is always a free group. In particular, even if a graph ``looks like a torus grid,'' its \(\pi_1\) is free, whereas \(\pi_1(T^2)\cong \mathbb{Z}^2\) is abelian. Passing from a \(1\)-skeleton to a \(2\)-dimensional cell complex adds relations (coming from the \(2\)-cell attaching maps) that convert the free group into the intended surface group. For the standard CW structure on \(T^2\), the \(1\)-skeleton is a wedge of two circles (free group on two generators) and the \(2\)-cell attachment imposes the commutator relation, yielding \(\mathbb{Z}^2\).
+\end{remark}
+
+\subsection{A concrete ``square complex'' on the grid}
+\label{sec:square-complex}
+
+One natural \(2\)-dimensional discretization of \(T^2\) is a cubical (square) complex built from the same lattice underlying \(E_n=\mathbb{Z}_{2n}\times\mathbb{Z}_n\).
+
+\begin{definition}[A square complex model \(X_n\simeq T^2\)]
+\label{def:square-complex}
+Fix integers \(n\ge 2\). Define a \(2\)-dimensional cubical complex \(X_n\) as follows.
+\begin{itemize}
+  \item \textbf{Vertices:} \(X_n^{(0)}:=\mathbb{Z}_{2n}\times\mathbb{Z}_n\).
+  \item \textbf{Edges:} connect \((i,j)\) to \((i+1,j)\) and to \((i,j+1)\) (with arithmetic in \(\mathbb{Z}_{2n}\) and \(\mathbb{Z}_n\)); include both orientations.
+  \item \textbf{Squares:} for each \((i,j)\), attach a square whose boundary traverses
+  \[
+  (i,j)\to(i+1,j)\to(i+1,j+1)\to(i,j+1)\to(i,j).
+  \]
+\end{itemize}
+Then \(X_n\) is a finite square complex whose geometric realization is homotopy equivalent to \(T^2\) (indeed, it is a standard cubical cell structure on a torus).
+\end{definition}
+
+\begin{remark}[Compatibility with the involution]
+\label{rem:cellular-involution}
+The involution \(\tau_n(i,j)=(i+n,-j)\) is a bijection on vertices that preserves horizontal and vertical adjacency and hence extends to a cellular automorphism of the square complex \(X_n\): it permutes edges and squares. Therefore one can form the quotient cell complex \(Y_n:=X_n/\langle\tau_n\rangle\) and a cellular quotient map \(\pi_n:X_n\to Y_n\). In an appropriate category (cubical complexes, or CW complexes), \(\pi_n\) is the natural discrete analogue of a \(2\)-sheeted covering map.
+\end{remark}
+
+\begin{remark}[What this buys relative to \cref{tab:discrete-comparison}]
+\label{rem:what-square-buys}
+Replacing the graph-level discretization by the square complex \(X_n\) upgrades property P5 from ``partially recovered'' to a closer analogue: the \(2\)-cells enforce surface-like relations, so \(\pi_1(X_n)\) behaves like \(\pi_1(T^2)\) rather than a free group. Similarly, one can formulate and prove lifting statements for cellular maps (not only for edge-paths) in this setting. The present note does not develop this further, but the square-complex viewpoint provides the appropriate language if the goal is to preserve \(2\)-dimensional topology rather than only path lifting for discrete walks.
+\end{remark}
+
+\section{Skeleton choices for MPC-inspired models}
+\label{sec:skeleton-choices-mpc}
+
+This section summarizes three discretization levels---\(0\)-skeleton (finite set), \(1\)-skeleton (graph), and \(2\)-skeleton (cell complex)---and records (i) how each is constructed, (ii) which items in \cref{tab:properties} it preserves (with both the ID and the property name), and (iii) why that level may be required for an MPC-style interpretation.
+
+\subsection{\(0\)-skeleton: a finite set model (one-shot)}
+\label{sec:sk0}
+
+\paragraph{How to construct it.}
+Fix \(n\ge 2\). One retains only a finite alphabet of ``hidden states'' and a public output alphabet:
+\begin{itemize}
+  \item \textbf{Total space (secrets):} \(E_n:=\mathbb{Z}_{2n}\times\mathbb{Z}_n\).
+  \item \textbf{Free involution:} \(\tau_n(i,j)=(i+n,-j)\).
+  \item \textbf{Base space (observations):} \(B_n:=E_n/\langle\tau_n\rangle\).
+  \item \textbf{Projection:} \(\pi_n:E_n\to B_n\), \(e\mapsto [e]\).
+\end{itemize}
+This is precisely \cref{def:discrete-set-map}.
+
+\paragraph{Which continuous properties are preserved.}
+At this level, the following properties from \cref{tab:properties} are preserved (in a literal set-theoretic sense):
+\begin{itemize}
+  \item \textbf{P1 (Free \(\mathbb{Z}_2\)-quotient structure):} preserved, since \(B_n\) is defined as the orbit set of a free involution.
+  \item \textbf{P2 (Constant fiber size):} preserved, since every fiber has the form \(\{e,\tau_n(e)\}\).
+\end{itemize}
+The remaining items are \emph{not} preserved as topological statements:
+\begin{itemize}
+  \item \textbf{P3 (Covering local structure):} not meaningful without a nontrivial topology/geometry on \(E_n,B_n\).
+  \item \textbf{P4 (Unique path lifting):} not meaningful unless a notion of ``path'' is chosen.
+  \item \textbf{P5 (Homotopy-theoretic consequences):} not preserved, since a finite set does not model surface homotopy data.
+\end{itemize}
+
+\paragraph{Why this level may be needed for MPC.}
+This level is sufficient for \emph{one-shot} information-theoretic questions: one chooses a distribution on a secret \(E_n\)-valued random variable \(E\), publishes \(B=\pi_n(E)\), and studies what is hidden from the observation. In particular, it is the natural setting for Shannon mutual information calculations because the alphabets are finite.
+
+\subsection{\(1\)-skeleton: a graph model (stateful evolution)}
+\label{sec:sk1}
+
+\paragraph{How to construct it.}
+One equips the finite set \(E_n\) with adjacency to obtain discrete trajectories:
+\begin{itemize}
+  \item \textbf{Upstairs graph:} \(G(E_n)\) has vertex set \(E_n\) and edges connecting \((i,j)\) to \((i\pm 1,j)\) and \((i,j\pm 1)\) (modulo \(2n\) and \(n\)).
+  \item \textbf{Downstairs graph:} \(G(B_n)\) is the orbit graph whose vertices are \(\tau_n\)-orbits and whose adjacency is induced by adjacency upstairs (\cref{sec:graph-structure}).
+  \item \textbf{Projection:} \(\pi_n:G(E_n)\to G(B_n)\) is the induced graph morphism.
+\end{itemize}
+
+\paragraph{Which continuous properties are preserved.}
+In addition to preserving P1--P2, the \(1\)-skeleton supports discrete analogues of covering and lifting:
+\begin{itemize}
+  \item \textbf{P1 (Free \(\mathbb{Z}_2\)-quotient structure):} preserved (same involution).
+  \item \textbf{P2 (Constant fiber size):} preserved (same fibers).
+  \item \textbf{P3 (Covering local structure):} preserved \emph{as a graph-covering local bijection} (\cref{def:graph-cover,prop:graph-covering}).
+  \item \textbf{P4 (Unique path lifting):} preserved \emph{for graph paths} (\cref{prop:graph-upl}).
+  \item \textbf{P5 (Homotopy-theoretic consequences):} only partially recovered (e.g.\ one can speak of the fundamental group of a graph), but this does not model the surface relation \(\pi_1(T^2)\cong\mathbb{Z}^2\) (see \cref{rem:pi1-graph-vs-surface}).
+\end{itemize}
+
+\paragraph{Why this level may be needed for MPC.}
+Repetition alone does not force a \(1\)-skeleton; rather, the necessity is driven by whether successive runs are coupled by an evolution constraint:
+\begin{itemize}
+  \item \textbf{Independent repeats (IID, no state):} Each round samples a fresh secret \(e_t\in E_n\), outputs \(b_t=\pi_n(e_t)\), and there is no rule relating \(e_t\) to \(e_{t+1}\). In this case, a \(0\)-skeleton model remains sufficient: the joint experiment is a product distribution on \(E_n^T\) together with the deterministic map \(\pi_n^T\).
+  \item \textbf{Stateful evolution (a trajectory):} There is an underlying hidden state \(e_t\in E_n\) that evolves with constraints (e.g.\ \(e_{t+1}\) must be a neighbor of \(e_t\), or updates must be local). The observer sees \(b_t=\pi_n(e_t)\). In this case, a \(1\)-skeleton is needed to define ``neighbor''/``allowed step'' and thereby to state a discrete analogue of path lifting.
+\end{itemize}
+
+\subsection{\(2\)-skeleton: a cell complex model (surface-level constraints)}
+\label{sec:sk2}
+
+\paragraph{How to construct it.}
+One attaches \(2\)-cells to the grid to form a square complex \(X_n\) (a \(2\)-dimensional cubical complex) as in \cref{def:square-complex}, and uses that \(\tau_n\) extends cellularly (\cref{rem:cellular-involution}) to form a quotient complex \(Y_n=X_n/\langle\tau_n\rangle\) and a cellular quotient map \(\pi_n:X_n\to Y_n\).
+
+\paragraph{Which continuous properties are preserved.}
+Relative to the graph model, the \(2\)-skeleton primarily strengthens P5-type behavior:
+\begin{itemize}
+  \item \textbf{P1 (Free \(\mathbb{Z}_2\)-quotient structure):} preserved (cellular \(\mathbb{Z}_2\)-action).
+  \item \textbf{P2 (Constant fiber size):} preserved at the level of vertices (and, more generally, at the level of cells as orbits under \(\mathbb{Z}_2\)).
+  \item \textbf{P3 (Covering local structure):} preserved in the appropriate combinatorial category (cubical/CW covering analogue) rather than as a statement about open neighborhoods in a manifold.
+  \item \textbf{P4 (Unique path lifting):} preserved for edge-paths (as in the \(1\)-skeleton) and can be extended to richer ``cellular'' lifting statements if desired.
+  \item \textbf{P5 (Homotopy-theoretic consequences):} preserved in a closer analogue of surface topology: the \(2\)-cells impose relations that prevent the fundamental group from being free and allow \(\pi_1(X_n)\) to behave like \(\pi_1(T^2)\) rather than \(\pi_1\) of a graph (\cref{rem:pi1-graph-vs-surface,rem:what-square-buys}).
+\end{itemize}
+
+\paragraph{Why this level may be needed for MPC (possible use cases).}
+The \(2\)-skeleton becomes relevant when the protocol requires relations between different paths, not only stepwise evolution. Plausible MPC-motivated uses include:
+\begin{itemize}
+  \item \textbf{(C1) Path-independence / confluence of updates (a ``diamond'' law):} suppose the protocol admits two local update operations \(A\) and \(B\) on the hidden state space (e.g.\ two independently scheduled actions) and correctness requires that applying them in either order yields the same resulting state (or at least the same observable transcript). In a \(2\)-complex, this is represented by a square \(2\)-cell whose boundary is the commuting ``diamond''
+  \[
+  e \xrightarrow{\ A\ } e_A \xrightarrow{\ B\ } e_{AB},
+  \qquad
+  e \xrightarrow{\ B\ } e_B \xrightarrow{\ A\ } e_{BA},
+  \]
+  together with the requirement \(e_{AB}=e_{BA}\) (or \(\pi(e_{AB})=\pi(e_{BA})\) if equality is meant only after projection). The existence of such a \(2\)-cell is precisely the combinatorial data not present at the graph level: it asserts that two distinct length-\(2\) paths with the same endpoints are identified as ``the same'' update at the level relevant to correctness.
+  \item \textbf{(C2) Loop/cycle consistency constraints (integrability):} when local constraints must be globally consistent; \(2\)-cells support boundary constraints (``constraints vanish on faces'') reminiscent of flatness conditions.
+  \item \textbf{(C3) Local tamper-detection via face checks:} \(2\)-cells provide redundant local equalities that honest transcripts satisfy, enabling local consistency checks.
+  \item \textbf{(C4) Cohomological/global \(\mathbb{Z}_2\) invariants:} \(2\)-sheeted structure can be expressed as a \(\mathbb{Z}_2\)-class on a complex, supporting a clean ``global hidden bit'' viewpoint.
+  \item \textbf{(C5) Topology-faithful modeling:} if a security/correctness argument depends on surface relations (e.g.\ commutators), then \(2\)-cells are the minimal way to encode those relations discretely.
+\end{itemize}
+
+\subsection{Refinement (not higher skeleta) as an approach to the continuum}
+\label{sec:refinement-to-continuum}
+
+It is natural to ask whether one can ``take a limit'' of discrete skeleton models to recover the continuous covering \(\pi:T^2\to K\). The correct perspective is that the \emph{cell dimension} does not increase beyond that of the manifold: since \(T^2\) is \(2\)-dimensional, a \(2\)-skeleton already has the right dimensionality to model it. What can be made arbitrarily fine is the \emph{resolution} of the discretization: one considers a sequence of \(2\)-dimensional cell complexes \(X_n\) (for example, finer and finer square grids) together with compatible quotient maps \(X_n\to Y_n\), and lets \(n\to\infty\).
+
+Different goals lead to different senses in which such a refinement may be said to ``approximate'' the continuous model.
+\begin{itemize}
+  \item \textbf{Topological/homotopy sense:} many finite cell structures on \(T^2\) already have the correct homotopy type; refinement preserves (rather than converges to) this type.
+  \item \textbf{Geometric/metric sense:} if each \(2\)-cell is assigned a geometric size (e.g.\ squares of side \(1/n\)), then the geometric realizations of \(X_n\) can approximate \(T^2\) as metric spaces as \(n\to\infty\) (in an appropriate notion of convergence).
+  \item \textbf{Equivariant/cover-compatible refinement:} for the covering application, it is particularly natural to refine in a way that respects the involution (so each \(X_n\) carries a free \(\mathbb{Z}_2\)-action and the quotient \(Y_n=X_n/\mathbb{Z}_2\) is defined at every scale), mirroring the continuous quotient construction.
+\end{itemize}
+In short, discretizations ``approach the continuum'' by refining cell decompositions, not by increasing the skeleton dimension beyond \(2\) in the present example.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The continuous map \(\pi:T^2\to K\) is naturally expressed as a projection \(\pi:E\to B\) from a total space to a base space with constant-size fibers \(E_b\) and unique path lifting. Discretization preserves only a subset of these features unless additional combinatorial structure is supplied; an equivariant grid discretization preserves the free \(\mathbb{Z}_2\)-quotient and \(2\)-point fibers at the set level, and a graph structure restores a discrete analogue of path lifting.
+
+\appendix
+
+\section{Survey: Formalizing \(T^2\to K\) in MathComp-Analysis}
+\label{app:mathcomp-survey}
+
+This appendix surveys the feasibility of formalizing the \(2\)-sheeted covering \(T^2\to K\) in the MathComp-Analysis library (Coq) across four settings: continuous, \(0\)-skeleton, \(1\)-skeleton, and \(2\)-skeleton (with parametric cell density). For each setting, we list (i) what infrastructure already exists in the library, (ii) what is lacking for a complete formalization, and (iii) an estimate of task size.
+
+\subsection{Continuous setting}
+\label{app:continuous}
+
+\paragraph{Goal.}
+Formalize \(T^2=(\mathbb{R}/\mathbb{Z})^2\), \(K\) as a quotient by the involution \(\tau(u,v)=(u+\tfrac12,1-v)\), and the quotient map \(\pi:T^2\to K\) as a \(2\)-sheeted covering map with unique path lifting.
+
+\paragraph{What is already available.}
+\begin{itemize}
+  \item \textbf{Topology foundations:} The library provides a rich hierarchy of topological structures (\texttt{topologicalType}, \texttt{uniformType}, \texttt{pseudoMetricType}) with filters, neighborhoods, and continuity~(\texttt{theories/topology\_theory/topology\_structure.v}).
+  \item \textbf{Quotient topology:} \texttt{quotient\_topology} constructs the quotient topology from a \texttt{quotType}, with continuity of the quotient map~(\texttt{theories/topology\_theory/quotient\_topology.v}).
+  \item \textbf{Product topology:} Product spaces \(T\times U\) inherit topology, uniformity, and pseudometric structure~(\texttt{theories/topology\_theory/product\_topology.v}).
+  \item \textbf{Subspace topology:} Subspaces of topological types with inherited neighborhoods and compactness~(\texttt{theories/topology\_theory/subspace\_topology.v}).
+  \item \textbf{Paths:} Continuous paths from bipointed spaces (\texttt{bpTopologicalType}) with path concatenation and reparameterization~(\texttt{theories/homotopy\_theory/continuous\_path.v}).
+  \item \textbf{Connectedness:} Definition and lemmas for connected sets and connected components~(\texttt{theories/topology\_theory/connected.v}).
+  \item \textbf{Compactness:} Filter-based and covering-based formulations, including \texttt{compact\_setX} for products~(\texttt{theories/topology\_theory/compact.v}).
+  \item \textbf{Set-theoretic functions:} Injections, surjections, bijections, inverse functions~(\texttt{classical/functions.v}).
+  \item \textbf{Cardinality:} Finite sets, countability, \texttt{finite\_set} predicate~(\texttt{classical/cardinality.v}).
+\end{itemize}
+
+\paragraph{What is lacking.}
+\begin{center}
+\begin{tabular}{p{0.35\linewidth} p{0.13\linewidth} p{0.42\linewidth}}
+\hline
+\textbf{Task} & \textbf{Status} & \textbf{Size estimate}\\
+\hline
+Circle \(S^1=\mathbb{R}/\mathbb{Z}\) as a topological type & Missing & Medium (define as quotient of \([0,1]\) or \(\mathbb{R}\))\\
+Torus \(T^2=S^1\times S^1\) as a compact surface & Missing & Small (product of circle once defined)\\
+Klein bottle \(K\) as quotient by twisted identification & Missing & Medium (requires quotient with non-product gluing)\\
+Definition of covering map (evenly covered neighborhoods) & Missing & Medium--Large (local triviality condition)\\
+Free group action / involution infrastructure & Missing & Medium (define \(\mathbb{Z}_2\)-action, freeness)\\
+Quotient by free finite group action yields covering & Missing & Large (main theorem connecting quotient to covering)\\
+Unique path lifting property for coverings & Missing & Medium--Large (lifting theorem, uniqueness)\\
+Homotopy lifting property & Missing & Large (requires homotopy infrastructure)\\
+\(\pi_1\) (fundamental group) & Missing & Large (requires loop space, group structure)\\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Summary.}
+The library has strong foundations in point-set topology (filters, neighborhoods, compactness, connectedness) and basic homotopy infrastructure (paths, wedge sums). However, \emph{no} covering space theory exists: there is no definition of covering map, no path lifting theorem, and no fundamental group. Formalizing the continuous \(T^2\to K\) covering would require substantial new development.
+
+\subsection{\(0\)-skeleton: finite set model}
+\label{app:0-skeleton}
+
+\paragraph{Goal.}
+Formalize the discrete sets \(E_n=\mathbb{Z}_{2n}\times\mathbb{Z}_n\), the free involution \(\tau_n\), the orbit set \(B_n=E_n/\langle\tau_n\rangle\), and the projection \(\pi_n:E_n\to B_n\).
+
+\paragraph{What is already available.}
+\begin{itemize}
+  \item \textbf{Finite types:} MathComp provides \texttt{'I\_n} (ordinals), \texttt{\{ffun A -> B\}}, and finite type combinatorics. Products \texttt{A * B} of finite types are finite.
+  \item \textbf{Modular arithmetic:} \(\mathbb{Z}_n\) is modeled as \texttt{'I\_n} with operations \texttt{+\%R}, \texttt{-\%R} in the ring structure.
+  \item \textbf{Quotients:} MathComp's \texttt{generic\_quotient} provides quotient types from equivalence relations.
+  \item \textbf{Classical sets:} \texttt{classical\_sets.v} provides set operations, images, preimages, and bijections.
+  \item \textbf{Finite set cardinality:} \texttt{cardinality.v} has \texttt{finite\_set}, \texttt{card\_eq}, and \texttt{card\_le}.
+  \item \textbf{Functions:} \texttt{functions.v} has injective/surjective/bijective function types and composition.
+\end{itemize}
+
+\paragraph{What is lacking.}
+\begin{center}
+\begin{tabular}{p{0.35\linewidth} p{0.13\linewidth} p{0.42\linewidth}}
+\hline
+\textbf{Task} & \textbf{Status} & \textbf{Size estimate}\\
+\hline
+Define \(E_n=\mathtt{'I\_{2n}}\times\mathtt{'I\_n}\) & Trivial & Trivial (one line)\\
+Define \(\tau_n(i,j)=(i+n,-j)\) & Trivial & Small (function definition)\\
+Prove \(\tau_n\) is a free involution & Missing & Small (straightforward arithmetic)\\
+Define orbit quotient \(B_n=E_n/\langle\tau_n\rangle\) & Easy & Small (use \texttt{generic\_quotient})\\
+Prove fiber size is constant \(=2\) & Missing & Small (follows from freeness)\\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Summary.}
+The \(0\)-skeleton model is essentially complete infrastructure-wise. Finite types, modular arithmetic, and quotient types are all present in MathComp. Only glue code and small proofs are needed: define the specific involution, show freeness, form the quotient, and verify fiber sizes.
+
+\subsection{\(1\)-skeleton: graph model}
+\label{app:1-skeleton}
+
+\paragraph{Goal.}
+Formalize the grid graph \(G(E_n)\) on \(\mathbb{Z}_{2n}\times\mathbb{Z}_n\), the orbit graph \(G(B_n)\), the graph morphism \(\pi_n:G(E_n)\to G(B_n)\), the graph covering property, and unique path lifting for graph paths.
+
+\paragraph{What is already available.}
+\begin{itemize}
+  \item \textbf{All \(0\)-skeleton infrastructure} (finite types, quotients, etc.).
+  \item \textbf{Relations:} MathComp has \texttt{rel} for binary relations, but no dedicated graph library in MathComp-Analysis itself.
+  \item \textbf{Paths (continuous):} The library has continuous paths (\texttt{pathType}) but these are for topological spaces, not combinatorial graphs.
+  \item \textbf{External: rocq-community/graph-theory.} A separate MathComp-compatible library\footnote{\url{https://github.com/rocq-community/graph-theory}} provides formalized graph theory: directed graphs, simple graphs, multigraphs, paths, forests, graph isomorphism, minors, and tree decompositions. It is built on MathComp (SSReflect, Algebra, finmap) and Hierarchy Builder, and includes results such as Menger's theorem and Hall's marriage theorem.
+
+  \emph{Dependency note:} MathComp-Analysis and \texttt{graph-theory} are \emph{sibling} libraries---both depend on MathComp core, but neither depends on the other. A formalization project can import from both without circular dependencies. The \(1\)-skeleton work would naturally live in a new project depending on both libraries (or on \texttt{graph-theory} alone if no topology is needed).
+\end{itemize}
+
+\paragraph{What is lacking.}
+\begin{center}
+\begin{tabular}{p{0.35\linewidth} p{0.13\linewidth} p{0.42\linewidth}}
+\hline
+\textbf{Task} & \textbf{Status} & \textbf{Size estimate}\\
+\hline
+Graph type (vertices + adjacency relation) & External$^\dagger$ & Small (use \texttt{graph-theory} library)\\
+Grid graph \(G(E_n)\) with torus adjacency & Missing & Small (instantiate with finite vertex set)\\
+Graph morphism / homomorphism & External$^\dagger$ & Small (available in library)\\
+Orbit graph \(G(B_n)\) from \(G(E_n)/\tau_n\) & Missing & Medium (quotient graph construction)\\
+Definition of graph covering (local bijection on neighbors) & Missing & Small--Medium\\
+Prove \(\pi_n:G(E_n)\to G(B_n)\) is a graph covering & Missing & Medium (main combinatorial argument)\\
+Graph paths (finite sequences of adjacent vertices) & External$^\dagger$ & Small (available in library)\\
+Unique path lifting for graph coverings & Missing & Medium (induction on path length)\\
+\hline
+\end{tabular}
+\end{center}
+{\small $^\dagger$Available in \texttt{rocq-community/graph-theory}.}
+
+\paragraph{Summary.}
+MathComp-Analysis itself has no dedicated graph theory infrastructure, but the external \texttt{rocq-community/graph-theory} library (compatible with MathComp) provides graphs, paths, morphisms, and related infrastructure. Using this library, the main remaining tasks are: (i) instantiate a grid graph on the finite torus lattice, (ii) define the orbit-graph quotient construction, (iii) define and prove the graph-covering property, and (iv) prove unique path lifting. The effort is reduced from ``Medium'' to ``Small--Medium'' if the external library is adopted.
+
+\subsection{\(2\)-skeleton: cell complex model (parametric density \(n\))}
+\label{app:2-skeleton}
+
+\paragraph{Goal.}
+Formalize a family of square complexes \(X_n\) (\(n\ge 2\)) on the grid \(\mathbb{Z}_{2n}\times\mathbb{Z}_n\), the cellular involution \(\tau_n\), the quotient complex \(Y_n=X_n/\langle\tau_n\rangle\), and verify that P1--P5 analogs hold with the parameter \(n\) controlling cell density.
+
+\paragraph{What is already available.}
+\begin{itemize}
+  \item \textbf{All \(0\)- and \(1\)-skeleton infrastructure} (after development).
+  \item \textbf{Finite types and sequences:} MathComp handles finite indexing well.
+  \item \textbf{Wedge sums:} \texttt{wedge\_sigT.v} provides wedge sum of pointed spaces (useful for attaching cells conceptually, though not directly a cell complex library).
+\end{itemize}
+
+\paragraph{What is lacking.}
+\begin{center}
+\begin{tabular}{p{0.35\linewidth} p{0.13\linewidth} p{0.42\linewidth}}
+\hline
+\textbf{Task} & \textbf{Status} & \textbf{Size estimate}\\
+\hline
+Cell complex / CW complex type & Missing & Large (general attaching maps, skeleta)\\
+Square/cubical complex specialization & Missing & Medium--Large (simpler than general CW)\\
+Boundary operator / face maps & Missing & Medium\\
+Cellular maps and cellular covering maps & Missing & Medium--Large\\
+\(\pi_1\) for cell complexes (via edge-loops mod relations) & Missing & Large (requires group theory + presentation)\\
+Parametric family \(X_n\) with density \(n\) & Missing & Medium (once cell complex exists)\\
+Quotient cell complex \(Y_n=X_n/\mathbb{Z}_2\) & Missing & Medium--Large\\
+Verify P5 (\(\pi_1(X_n)\cong\mathbb{Z}^2\)) & Missing & Large (requires \(\pi_1\) machinery)\\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Summary.}
+Cell complexes, simplicial complexes, and CW complexes are entirely absent from MathComp-Analysis. Building this infrastructure from scratch is a significant undertaking. A pragmatic alternative is to work with a ``combinatorial \(2\)-complex'' defined directly via finite sets of vertices, edges, and faces with incidence relations, avoiding the full generality of CW attaching maps. See \cref{app:boundary-word} for a lightweight approach.
+
+\subsection{A lightweight boundary-word approach to the \(2\)-skeleton}
+\label{app:boundary-word}
+
+Rather than building general CW complex infrastructure, one can formalize the \(T^2\to K\) covering directly using \emph{boundary words} (edge-path lists). This approach, suggested by a colleague, captures the essential algebraic topology in elementary Coq definitions.
+
+\paragraph{Core data structures.}
+\begin{itemize}
+  \item \textbf{Edges:} A finite set of oriented edge labels, e.g.\ \(\{a, b, a^{-1}, b^{-1}\}\) for a one-vertex model.
+  \item \textbf{2-cell boundary:} A \texttt{list edge} representing the attaching map. For example:
+  \begin{itemize}
+    \item \emph{Klein bottle \(K\):} boundary word \([a,\, b,\, a,\, b^{-1}]\) (the relation \(aba = b\)).
+    \item \emph{Torus \(T^2\):} boundary word \([a_1,\, b_1,\, a_1^{-1},\, b_1^{-1}]\) (the commutator \([a_1,b_1]=1\)).
+  \end{itemize}
+  \item \textbf{Covering projection on edges:} A function \(p_1:\texttt{T\_edge}\to\texttt{K\_edge}\) (e.g.\ collapsing two copies of edges).
+  \item \textbf{Covering projection on faces:} A function \(p_2:\texttt{T\_face}\to\texttt{K\_face}\).
+\end{itemize}
+
+\paragraph{Key lemma: boundary consistency.}
+The fundamental property of a cellular map is that the boundary operator commutes with projection:
+\begin{verbatim}
+Lemma boundary_consistent :
+  forall f : T_face,
+    map p1 (boundary f) = boundary (p2 f).
+\end{verbatim}
+This states that projecting the boundary of a torus face yields the boundary of the corresponding Klein bottle face (up to the edge projection).
+
+\paragraph{Euler characteristic check.}
+The Euler characteristic \(\chi = V - E + F\) provides a sanity check:
+\begin{itemize}
+  \item \(\chi(T^2) = 0\) and \(\chi(K) = 0\).
+  \item For a \(d\)-sheeted covering \(E\to B\), we have \(\chi(E) = d\cdot\chi(B)\) when both are computed cellularly. Here \(d=2\), so \(0 = 2\times 0\) holds trivially.
+  \item A more interesting check: verify that \(\#(\text{vertices in }T^2) = 2\cdot\#(\text{vertices in }K)\), and similarly for edges and faces, consistent with the \(2\)-sheeted structure.
+\end{itemize}
+
+\paragraph{Effort estimate.}
+This boundary-word approach avoids general CW machinery:
+\begin{center}
+\begin{tabular}{p{0.45\linewidth} p{0.13\linewidth} p{0.32\linewidth}}
+\hline
+\textbf{Task} & \textbf{Status} & \textbf{Size estimate}\\
+\hline
+Define edge type and inverse & Missing & Trivial\\
+Define \texttt{boundary : face -> list edge} & Missing & Small\\
+Define projections \(p_1\), \(p_2\) & Missing & Small\\
+Prove \texttt{boundary\_consistent} & Missing & Small--Medium\\
+Compute \(\chi\) and verify cell counts & Missing & Small\\
+Parametric grid version (density \(n\)) & Missing & Medium\\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Conclusion.}
+The boundary-word approach reduces the \(2\)-skeleton formalization from ``Large--Very large'' to ``Small--Medium'' by avoiding abstract CW complex theory. It is sufficient for verifying the cellular covering property and Euler characteristic, though it does not directly yield \(\pi_1\) computations (which would require quotienting the free group on edges by boundary relations).
+
+\subsection{Overall assessment}
+\label{app:overall}
+
+\begin{center}
+\begin{tabular}{p{0.18\linewidth} p{0.25\linewidth} p{0.25\linewidth} p{0.22\linewidth}}
+\hline
+\textbf{Setting} & \textbf{Infrastructure present} & \textbf{Main gaps} & \textbf{Effort}\\
+\hline
+Continuous & Topology foundations, paths, compactness & Covering maps, \(\pi_1\), circle/torus types & Very large\\
+\(0\)-skeleton & Finite types, modular arithmetic, quotients & Glue code only & Small\\
+\(1\)-skeleton & Finite types, quotients; external graph library$^\dagger$ & Orbit graph, graph covering definition & Small--Medium\\
+\(2\)-skeleton (general) & Finite types, quotients & Cell complex library, \(\pi_1\), cellular covering & Large--Very large\\
+\(2\)-skeleton (boundary-word)$^\ddagger$ & Finite types, lists & Boundary consistency lemma, \(\chi\) check & Small--Medium\\
+\hline
+\end{tabular}
+\end{center}
+{\small $^\dagger$\texttt{rocq-community/graph-theory} provides graphs, paths, morphisms.}\\
+{\small $^\ddagger$See \cref{app:boundary-word}; avoids general CW machinery.}
+
+\paragraph{Recommendation.}
+For a proof-of-concept formalization, the \textbf{\(0\)-skeleton} model is immediately achievable with minimal effort. The \textbf{\(1\)-skeleton} model is the natural next step: adopting the external \texttt{rocq-community/graph-theory} library provides graphs, paths, and morphisms out of the box, leaving only the orbit-graph quotient and graph-covering definitions to formalize---a manageable project. The \textbf{continuous} and \textbf{\(2\)-skeleton} models require substantial new library development (covering space theory, cell complexes, fundamental groups) and are better suited for longer-term efforts or dedicated formalization projects.
+
+\section{Dictionary of selected terms}
+\label{app:dictionary}
+
+This appendix records a few terms used in the note, in a form suitable for later formalization.
+
+\begin{description}
+  \item[\textbf{(Free) involution.}]
+  An \emph{involution} on a set or space \(E\) is a map \(\tau:E\to E\) satisfying \(\tau\circ\tau=\mathrm{id}_E\).
+  It is \emph{free} (or \emph{fixed-point free}) if it has no fixed points, i.e.\ \(\tau(e)\neq e\) for all \(e\in E\).
+  A free involution determines a free action of \(\mathbb{Z}_2=\{0,1\}\) on \(E\), and hence an orbit set (or orbit space) \(E/\langle\tau\rangle\) together with the quotient projection \(\pi:E\to E/\langle\tau\rangle\).
+
+  \item[\textbf{Orbit graph.}]
+  Let \(G\) be a graph and let a group \(G_0\) act on \(G\) by graph automorphisms (so vertices are permuted and adjacency is preserved). The \emph{orbit graph} \(G/G_0\) is the graph whose vertices are the \(G_0\)-orbits of vertices of \(G\).
+  In this note, adjacency in the orbit graph is defined by: two distinct orbits \([v]\) and \([w]\) are adjacent if there exist representatives \(v'\in[v]\) and \(w'\in[w]\) that are adjacent in the original graph. When multiple edges could arise from different representative choices, the convention here is to pass to the associated \emph{simple} graph (i.e.\ forget multiplicities).
+
+  \item[\textbf{CW complex (very briefly).}]
+  A \emph{CW complex} is a topological space built inductively by attaching \(n\)-dimensional cells \(D^n\) along their boundaries \(S^{n-1}\) to the \((n-1)\)-skeleton.
+  The letters ``CW'' refer to two standard conditions: \textbf{C} means \emph{closure-finite} (the closure of each cell meets only finitely many other cells), and \textbf{W} means the \emph{weak topology} with respect to the cells (a set is open iff its intersection with the closure of each cell is open).
+  In this note, ``cell complex'' is used informally and the concrete discretizations are square/cubical complexes, which can be viewed as finite CW complexes.
+
+  \item[\textbf{CW covering (informal).}]
+  The phrase \emph{CW covering} is used informally to mean a covering map formulated in a cellular setting (cf.\ the preceding entry on CW complexes).
+  Concretely, if \(X\) and \(Y\) are CW complexes (or, in this note, square/cubical complexes), a map \(p:X\to Y\) is a \emph{cellular covering} if it is cellular and behaves like a covering ``cell-by-cell'': each open cell of \(Y\) has preimage a disjoint union of open cells of \(X\), and the restriction of \(p\) to each such open cell is a homeomorphism onto that open cell.
+  This notion is intended as a combinatorial analogue of the usual topological definition of a covering map (evenly covered neighborhoods), specialized to the chosen cell decomposition.
+\end{description}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+
